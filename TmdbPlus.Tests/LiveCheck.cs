@@ -104,7 +104,35 @@ static class LiveCheck
         Console.WriteLine($"  trending:  {trending.Results!.Count} this week, " +
                           $"top = {trending.Results[0].DisplayName}");
 
-        // 6. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
+        // 6. Auth and writes. A guest session needs no user credentials, so the whole write path
+        //    (POST body, DELETE, the status envelope) is exercisable without an account.
+        var validated = await client.Authentication.ValidateAsync();
+        check(validated.Success == true, "the configured token should validate");
+
+        var guest = await client.Authentication.CreateGuestSessionAsync();
+        check(guest.Success && !string.IsNullOrEmpty(guest.GuestSessionId), "guest session should be issued");
+
+        var rated = await client.Movies.RateAsync(603, 8.5, guest.Session);
+        check(rated.StatusCode == 1, $"rating should succeed, got status_code {rated.StatusCode}");
+
+        var unrated = await client.Movies.DeleteRatingAsync(603, guest.Session);
+        check(unrated.StatusCode == 13, $"delete should succeed, got status_code {unrated.StatusCode}");
+        Console.WriteLine($"  writes:    guest session ok, rate -> {rated.StatusCode}, " +
+                          $"delete -> {unrated.StatusCode}");
+
+        // An invalid rating must surface TMDB's reason, not a bare 400.
+        try
+        {
+            await client.Movies.RateAsync(603, 99, guest.Session);
+            check(false, "an out-of-range rating should have thrown");
+        }
+        catch (TmdbApiException ex)
+        {
+            check(ex.StatusCode == 18, $"expected status_code 18, got {ex.StatusCode}");
+            Console.WriteLine($"  validation: rating 99 -> status_code {ex.StatusCode}: {ex.StatusMessage}");
+        }
+
+        // 7. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
         try
         {
             await client.Movies.GetAsync(999999999);

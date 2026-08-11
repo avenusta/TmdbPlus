@@ -32,6 +32,10 @@ public sealed class TmdbClient : ITmdbClient
         Discover = new DiscoverEndpoints(this);
         Trending = new TrendingEndpoints(this);
         Find = new FindEndpoints(this);
+        Account = new AccountEndpoints(this);
+        GuestSessions = new GuestSessionEndpoints(this);
+        Authentication = new AuthenticationEndpoints(this);
+        Lists = new ListEndpoints(this);
     }
 
     public IMovieEndpoints Movies { get; }
@@ -41,6 +45,10 @@ public sealed class TmdbClient : ITmdbClient
     public IDiscoverEndpoints Discover { get; }
     public ITrendingEndpoints Trending { get; }
     public IFindEndpoints Find { get; }
+    public IAccountEndpoints Account { get; }
+    public IGuestSessionEndpoints GuestSessions { get; }
+    public IAuthenticationEndpoints Authentication { get; }
+    public IListEndpoints Lists { get; }
 
     /// <summary>
     /// Shared serializer options. Endpoints bind JSON straight into the public types, so the
@@ -89,8 +97,13 @@ public sealed class TmdbClient : ITmdbClient
         return SendAsync<T>(request, ct);
     }
 
-    internal Task<T> DeleteAsync<T>(string path, QueryString query, CancellationToken ct)
-        => SendAsync<T>(new HttpRequestMessage(HttpMethod.Delete, path + query), ct);
+    /// <summary>DELETE carries a body on <c>/authentication/session</c>, so one is allowed here.</summary>
+    internal Task<T> DeleteAsync<T>(string path, QueryString query, CancellationToken ct, object? body = null)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Delete, path + query);
+        if (body is not null) request.Content = JsonContent.Create(body, options: Json);
+        return SendAsync<T>(request, ct);
+    }
 
     async Task<T> SendAsync<T>(HttpRequestMessage request, CancellationToken ct)
     {
@@ -123,4 +136,8 @@ public interface ITmdbClient
     IDiscoverEndpoints Discover { get; }
     ITrendingEndpoints Trending { get; }
     IFindEndpoints Find { get; }
+    IAccountEndpoints Account { get; }
+    IGuestSessionEndpoints GuestSessions { get; }
+    IAuthenticationEndpoints Authentication { get; }
+    IListEndpoints Lists { get; }
 }
