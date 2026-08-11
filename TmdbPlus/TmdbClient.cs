@@ -36,6 +36,17 @@ public sealed class TmdbClient : ITmdbClient
         GuestSessions = new GuestSessionEndpoints(this);
         Authentication = new AuthenticationEndpoints(this);
         Lists = new ListEndpoints(this);
+        Configuration = new ConfigurationEndpoints(this);
+        Certifications = new CertificationEndpoints(this);
+        Genres = new GenreEndpoints(this);
+        Collections = new CollectionEndpoints(this);
+        Companies = new CompanyEndpoints(this);
+        Networks = new NetworkEndpoints(this);
+        Keywords = new KeywordEndpoints(this);
+        Credits = new CreditEndpoints(this);
+        Reviews = new ReviewEndpoints(this);
+        WatchProviders = new WatchProviderEndpoints(this);
+        Changes = new ChangesEndpoints(this);
     }
 
     public IMovieEndpoints Movies { get; }
@@ -49,6 +60,17 @@ public sealed class TmdbClient : ITmdbClient
     public IGuestSessionEndpoints GuestSessions { get; }
     public IAuthenticationEndpoints Authentication { get; }
     public IListEndpoints Lists { get; }
+    public IConfigurationEndpoints Configuration { get; }
+    public ICertificationEndpoints Certifications { get; }
+    public IGenreEndpoints Genres { get; }
+    public ICollectionEndpoints Collections { get; }
+    public ICompanyEndpoints Companies { get; }
+    public INetworkEndpoints Networks { get; }
+    public IKeywordEndpoints Keywords { get; }
+    public ICreditEndpoints Credits { get; }
+    public IReviewEndpoints Reviews { get; }
+    public IWatchProviderEndpoints WatchProviders { get; }
+    public IChangesEndpoints Changes { get; }
 
     /// <summary>
     /// Shared serializer options. Endpoints bind JSON straight into the public types, so the
@@ -140,4 +162,15 @@ public interface ITmdbClient
     IGuestSessionEndpoints GuestSessions { get; }
     IAuthenticationEndpoints Authentication { get; }
     IListEndpoints Lists { get; }
+    IConfigurationEndpoints Configuration { get; }
+    ICertificationEndpoints Certifications { get; }
+    IGenreEndpoints Genres { get; }
+    ICollectionEndpoints Collections { get; }
+    ICompanyEndpoints Companies { get; }
+    INetworkEndpoints Networks { get; }
+    IKeywordEndpoints Keywords { get; }
+    ICreditEndpoints Credits { get; }
+    IReviewEndpoints Reviews { get; }
+    IWatchProviderEndpoints WatchProviders { get; }
+    IChangesEndpoints Changes { get; }
 }

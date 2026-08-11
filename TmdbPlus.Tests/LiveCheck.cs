@@ -132,7 +132,35 @@ static class LiveCheck
             Console.WriteLine($"  validation: rating 99 -> status_code {ex.StatusCode}: {ex.StatusMessage}");
         }
 
-        // 7. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
+        // 7. Reference areas, including the shapes that are neither a page nor an object:
+        //    /configuration/countries returns a bare array, certifications a keyed map.
+        var config = await client.Configuration.GetAsync();
+        check(config.Images?.SecureBaseUrl is not null, "image config should carry a base url");
+        check(config.Images!.PosterSizes is { Count: > 0 }, "poster sizes should be listed");
+
+        var countries = await client.Configuration.GetCountriesAsync();
+        check(countries is { Count: > 0 }, "countries deserialize from a bare top-level array");
+
+        var certs = await client.Certifications.GetMovieCertificationsAsync();
+        check(certs.Certifications is { Count: > 0 }, "certifications should be keyed by country");
+        check(certs.Certifications!.ContainsKey("US"), "US certifications should be present");
+        Console.WriteLine($"  config:    {config.Images.SecureBaseUrl} " +
+                          $"({config.Images.PosterSizes!.Count} poster sizes), {countries!.Count} countries");
+        Console.WriteLine($"  certs:     {certs.Certifications.Count} countries, " +
+                          $"US has {certs.Certifications["US"].Count} ratings");
+
+        var collection = await client.Collections.GetAsync(10);
+        check(collection.Parts is { Count: > 0 }, "a collection should carry its parts");
+
+        var credit = await client.Credits.GetAsync("52fe4232c3a36847f800b579");
+        check(credit.Person is not null, "a credit resolves its person");
+
+        var genres = await client.Genres.GetMovieGenresAsync();
+        check(genres.Genres is { Count: > 0 }, "movie genres should be listed");
+        Console.WriteLine($"  reference: {collection.Name} ({collection.Parts!.Count} films), " +
+                          $"credit -> {credit.Person!.Name}, {genres.Genres!.Count} genres");
+
+        // 8. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
         try
         {
             await client.Movies.GetAsync(999999999);
