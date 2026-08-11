@@ -57,7 +57,21 @@ static class LiveCheck
         Console.WriteLine($"  tv nested: S1 has {season.Episodes!.Count} eps, " +
                           $"S1E1 = \"{episode.Name}\" ({episode.EpisodeType})");
 
-        // 4. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
+        // 4. People: combined credits mix movies and series in one list, so media_type is the
+        //    only thing telling them apart. This is where MediaType has to be right.
+        var person = await client.People.GetAsync(287, PersonAppend.CombinedCredits);
+        check(person.Id == 287, "person 287 should come back");
+        check(person.CombinedCredits?.Cast is { Count: > 0 }, "combined credits should be populated");
+
+        var credits = person.CombinedCredits!.Cast!;
+        var movies = credits.Count(c => c.MediaType.Value == MediaType.Movie);
+        var shows = credits.Count(c => c.MediaType.Value == MediaType.Tv);
+        check(movies > 0 && shows > 0, "combined credits should span both media types");
+        check(credits.All(c => c.DisplayName is not null), "every credit resolves a title or name");
+        Console.WriteLine($"  people:    {person.Name} ({person.Birthday}), " +
+                          $"{credits.Count} credits = {movies} movies + {shows} tv");
+
+        // 5. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
         try
         {
             await client.Movies.GetAsync(999999999);
