@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <!--
+      A plain console self-check, not a test framework: one runnable thing that fails if the
+      load-bearing logic breaks. Runs against the real fixtures in audit/ (gitignored).
+    -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../TmdbPlus/TmdbPlus.csproj" />
+    </ItemGroup>
+
+</Project>

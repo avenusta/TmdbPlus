@@ -1,0 +1,93 @@
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.Options;
+using TmdbPlus.Endpoints;
+using TmdbPlus.Json;
+using TmdbPlus.Models;
+
+namespace TmdbPlus;
+
+/// <summary>
+/// Entry point. Endpoints are grouped by TMDB area and reached through the properties below.
+/// Immutable and safe to register as a singleton -- sessions are passed per call, never held.
+/// </summary>
+public sealed class TmdbClient : ITmdbClient
+{
+    internal const string HttpClientName = "TmdbPlus";
+
+    readonly HttpClient _http;
+    readonly TmdbOptions _options;
+
+    public TmdbClient(HttpClient http, IOptions<TmdbOptions> options)
+    {
+        _http = http;
+        _options = options.Value;
+        if (_http.BaseAddress is null) _http.BaseAddress = _options.BaseAddress;
+
+        Movies = new MovieEndpoints(this);
+    }
+
+    public IMovieEndpoints Movies { get; }
+
+    /// <summary>
+    /// Shared serializer options. Endpoints bind JSON straight into the public types, so the
+    /// converters that have to apply everywhere live here rather than on every property.
+    /// </summary>
+    internal static readonly JsonSerializerOptions Json = new()
+    {
+        PropertyNamingPolicy = null,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString,
+        Converters =
+        {
+            new TmdbDateOnlyConverter(),
+            new TmdbDateTimeOffsetConverter(),
+        },
+    };
+
+    internal string? DefaultLanguage => _options.DefaultLanguage;
+    internal string? DefaultRegion => _options.DefaultRegion;
+
+    // ---------------------------------------------------------------------
+    // The one path every endpoint goes through.
+    // ---------------------------------------------------------------------
+
+    internal Task<T> GetAsync<T>(string path, QueryString query, CancellationToken ct)
+        => SendAsync<T>(new HttpRequestMessage(HttpMethod.Get, path + query), ct);
+
+    internal Task<T> PostAsync<T>(string path, QueryString query, object? body, CancellationToken ct)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, path + query);
+        if (body is not null) request.Content = JsonContent.Create(body, options: Json);
+        return SendAsync<T>(request, ct);
+    }
+
+    internal Task<T> DeleteAsync<T>(string path, QueryString query, CancellationToken ct)
+        => SendAsync<T>(new HttpRequestMessage(HttpMethod.Delete, path + query), ct);
+
+    async Task<T> SendAsync<T>(HttpRequestMessage request, CancellationToken ct)
+    {
+        using var response = await _http.SendAsync(request, ct).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+            TmdbStatusResponse? status = null;
+            try { status = JsonSerializer.Deserialize<TmdbStatusResponse>(body, Json); }
+            catch (JsonException) { /* not the usual envelope; Body carries it instead */ }
+            throw new TmdbApiException(response.StatusCode, status, body);
+        }
+
+        var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+        var result = await JsonSerializer.DeserializeAsync<T>(stream, Json, ct).ConfigureAwait(false);
+
+        return result ?? throw new TmdbApiException(response.StatusCode, null,
+            "TMDB returned a success status with a null body.");
+    }
+}
+
+/// <inheritdoc cref="TmdbClient"/>
+public interface ITmdbClient
+{
+    IMovieEndpoints Movies { get; }
+}

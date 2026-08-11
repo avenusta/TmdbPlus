@@ -15,6 +15,19 @@
       Routing through it would drop data and cost ~5,554 mapping assignments.
       See https://github.com/avenusta/TmdbPlus/issues/9.
     -->
+    <!--
+      Microsoft.Extensions.Http pulls in DependencyInjection + Options and is what makes
+      AddTmdb / the auth DelegatingHandler pipeline work. Not third-party: it ships with the
+      platform, out of the same repo as the BCL.
+    -->
+    <ItemGroup>
+        <InternalsVisibleTo Include="TmdbPlus.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
+    </ItemGroup>
+
     <ItemGroup>
         <Compile Remove="Client/TmdbClient.Generated.cs" />
         <None Include="Client/TmdbClient.Generated.cs" />
