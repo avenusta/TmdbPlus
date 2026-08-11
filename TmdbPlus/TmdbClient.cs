@@ -26,9 +26,11 @@ public sealed class TmdbClient : ITmdbClient
         if (_http.BaseAddress is null) _http.BaseAddress = _options.BaseAddress;
 
         Movies = new MovieEndpoints(this);
+        Tv = new TvEndpoints(this);
     }
 
     public IMovieEndpoints Movies { get; }
+    public ITvEndpoints Tv { get; }
 
     /// <summary>
     /// Shared serializer options. Endpoints bind JSON straight into the public types, so the
@@ -47,6 +49,21 @@ public sealed class TmdbClient : ITmdbClient
 
     internal string? DefaultLanguage => _options.DefaultLanguage;
     internal string? DefaultRegion => _options.DefaultRegion;
+
+    // The three query shapes that recur across nearly every area, hoisted so an endpoint that
+    // uses one stays a single expression.
+
+    /// <summary>Just <c>language</c>, falling back to the configured default.</summary>
+    internal QueryString Language(string? language)
+        => new QueryString().Add("language", language ?? DefaultLanguage);
+
+    /// <summary><c>language</c> + <c>page</c>.</summary>
+    internal QueryString Page(string? language, int? page)
+        => Language(language).Add("page", page);
+
+    /// <summary><c>language</c> + <c>page</c> + <c>region</c>.</summary>
+    internal QueryString Page(string? language, int? page, string? region)
+        => Page(language, page).Add("region", region ?? DefaultRegion);
 
     // ---------------------------------------------------------------------
     // The one path every endpoint goes through.
@@ -90,4 +107,5 @@ public sealed class TmdbClient : ITmdbClient
 public interface ITmdbClient
 {
     IMovieEndpoints Movies { get; }
+    ITvEndpoints Tv { get; }
 }

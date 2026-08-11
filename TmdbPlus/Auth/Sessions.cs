@@ -27,3 +27,11 @@ public readonly struct AnySession
     public static implicit operator AnySession(UserSession s) => new(s.SessionId, null);
     public static implicit operator AnySession(GuestSession s) => new(null, s.GuestSessionId);
 }
+
+internal static class SessionExtensions
+{
+    /// <summary>Whichever of the two session parameters this session carries.</summary>
+    internal static QueryString ToQuery(this AnySession session) => new QueryString()
+        .Add("session_id", session.UserSessionId)
+        .Add("guest_session_id", session.GuestSessionId);
+}

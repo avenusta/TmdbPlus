@@ -38,7 +38,26 @@ static class LiveCheck
         check(popular.Results is { Count: > 0 }, "results should be populated");
         Console.WriteLine($"  paging:    page {popular.Page}/{popular.TotalPages}, {popular.Results!.Count} results");
 
-        // 3. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
+        // 3. TV: the three-level nesting, and aggregate credits (roles, not a single character).
+        var series = await client.Tv.GetAsync(1396, TvSeriesAppend.AggregateCredits | TvSeriesAppend.ContentRatings);
+        check(series.Id == 1396, "series 1396 should come back");
+        check(series.Seasons is { Count: > 0 }, "seasons should be listed");
+        check(series.AggregateCredits?.Cast is { Count: > 0 }, "aggregate credits should be populated");
+        check(series.ContentRatings?.Results is { Count: > 0 }, "content ratings should be populated");
+        var lead = series.AggregateCredits!.Cast![0];
+        check(lead.Roles is { Count: > 0 }, "an aggregate cast member carries roles");
+        Console.WriteLine($"  tv:        {series.Name}, {series.NumberOfSeasons} seasons, " +
+                          $"{lead.Name} in {lead.TotalEpisodeCount} eps as {lead.Roles![0].Character}");
+
+        var season = await client.Tv.Seasons.GetAsync(1396, 1);
+        check(season.Episodes is { Count: > 0 }, "season should carry episodes");
+        var episode = await client.Tv.Episodes.GetAsync(1396, 1, 1, TvEpisodeAppend.Credits);
+        check(episode.EpisodeNumber == 1, "episode number should round-trip");
+        check(episode.Credits?.GuestStars is not null, "episode credits carry guest stars");
+        Console.WriteLine($"  tv nested: S1 has {season.Episodes!.Count} eps, " +
+                          $"S1E1 = \"{episode.Name}\" ({episode.EpisodeType})");
+
+        // 4. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
         try
         {
             await client.Movies.GetAsync(999999999);

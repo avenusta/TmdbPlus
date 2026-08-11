@@ -53,8 +53,7 @@ internal sealed class MovieEndpoints(TmdbClient client) : IMovieEndpoints
             .Add("language", language ?? client.DefaultLanguage), cancellationToken);
 
     public Task<Credits> GetCreditsAsync(int movieId, string? language = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<Credits>($"3/movie/{movieId}/credits", new QueryString()
-            .Add("language", language ?? client.DefaultLanguage), cancellationToken);
+        => client.GetAsync<Credits>($"3/movie/{movieId}/credits", client.Language(language), cancellationToken);
 
     public Task<Images> GetImagesAsync(int movieId, string? language = null, string? includeImageLanguage = null, CancellationToken cancellationToken = default)
         => client.GetAsync<Images>($"3/movie/{movieId}/images", new QueryString()
@@ -62,8 +61,7 @@ internal sealed class MovieEndpoints(TmdbClient client) : IMovieEndpoints
             .Add("include_image_language", includeImageLanguage), cancellationToken);
 
     public Task<ResultsOf<Video>> GetVideosAsync(int movieId, string? language = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<ResultsOf<Video>>($"3/movie/{movieId}/videos", new QueryString()
-            .Add("language", language ?? client.DefaultLanguage), cancellationToken);
+        => client.GetAsync<ResultsOf<Video>>($"3/movie/{movieId}/videos", client.Language(language), cancellationToken);
 
     public Task<MovieKeywords> GetKeywordsAsync(int movieId, CancellationToken cancellationToken = default)
         => client.GetAsync<MovieKeywords>($"3/movie/{movieId}/keywords", new QueryString(), cancellationToken);
@@ -89,56 +87,44 @@ internal sealed class MovieEndpoints(TmdbClient client) : IMovieEndpoints
             .Add("start_date", startDate).Add("end_date", endDate).Add("page", page), cancellationToken);
 
     public Task<PagedResult<MovieSummary>> GetRecommendationsAsync(int movieId, string? language = null, int? page = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<PagedResult<MovieSummary>>($"3/movie/{movieId}/recommendations", new QueryString()
-            .Add("language", language ?? client.DefaultLanguage).Add("page", page), cancellationToken);
+        => client.GetAsync<PagedResult<MovieSummary>>($"3/movie/{movieId}/recommendations", client.Page(language, page), cancellationToken);
 
     public Task<PagedResult<MovieSummary>> GetSimilarAsync(int movieId, string? language = null, int? page = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<PagedResult<MovieSummary>>($"3/movie/{movieId}/similar", new QueryString()
-            .Add("language", language ?? client.DefaultLanguage).Add("page", page), cancellationToken);
+        => client.GetAsync<PagedResult<MovieSummary>>($"3/movie/{movieId}/similar", client.Page(language, page), cancellationToken);
 
     public Task<PagedResult<Review>> GetReviewsAsync(int movieId, string? language = null, int? page = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<PagedResult<Review>>($"3/movie/{movieId}/reviews", new QueryString()
-            .Add("language", language ?? client.DefaultLanguage).Add("page", page), cancellationToken);
+        => client.GetAsync<PagedResult<Review>>($"3/movie/{movieId}/reviews", client.Page(language, page), cancellationToken);
 
     public Task<PagedResult<ListSummary>> GetListsAsync(int movieId, string? language = null, int? page = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<PagedResult<ListSummary>>($"3/movie/{movieId}/lists", new QueryString()
-            .Add("language", language ?? client.DefaultLanguage).Add("page", page), cancellationToken);
+        => client.GetAsync<PagedResult<ListSummary>>($"3/movie/{movieId}/lists", client.Page(language, page), cancellationToken);
 
     public Task<DatedMoviePage> GetNowPlayingAsync(string? language = null, int? page = null, string? region = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<DatedMoviePage>("3/movie/now_playing", ListQuery(language, page, region), cancellationToken);
+        => client.GetAsync<DatedMoviePage>("3/movie/now_playing", client.Page(language, page, region), cancellationToken);
 
     public Task<DatedMoviePage> GetUpcomingAsync(string? language = null, int? page = null, string? region = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<DatedMoviePage>("3/movie/upcoming", ListQuery(language, page, region), cancellationToken);
+        => client.GetAsync<DatedMoviePage>("3/movie/upcoming", client.Page(language, page, region), cancellationToken);
 
     public Task<PagedResult<MovieSummary>> GetPopularAsync(string? language = null, int? page = null, string? region = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<PagedResult<MovieSummary>>("3/movie/popular", ListQuery(language, page, region), cancellationToken);
+        => client.GetAsync<PagedResult<MovieSummary>>("3/movie/popular", client.Page(language, page, region), cancellationToken);
 
     public Task<PagedResult<MovieSummary>> GetTopRatedAsync(string? language = null, int? page = null, string? region = null, CancellationToken cancellationToken = default)
-        => client.GetAsync<PagedResult<MovieSummary>>("3/movie/top_rated", ListQuery(language, page, region), cancellationToken);
+        => client.GetAsync<PagedResult<MovieSummary>>("3/movie/top_rated", client.Page(language, page, region), cancellationToken);
 
     public Task<MovieDetails> GetLatestAsync(CancellationToken cancellationToken = default)
         => client.GetAsync<MovieDetails>("3/movie/latest", new QueryString(), cancellationToken);
 
     public Task<AccountStates> GetAccountStatesAsync(int movieId, AnySession session, CancellationToken cancellationToken = default)
         => client.GetAsync<AccountStates>($"3/movie/{movieId}/account_states",
-            SessionQuery(session), cancellationToken);
+            session.ToQuery(), cancellationToken);
 
     public Task<TmdbStatusResponse> RateAsync(int movieId, double value, AnySession session, CancellationToken cancellationToken = default)
         => client.PostAsync<TmdbStatusResponse>($"3/movie/{movieId}/rating",
-            SessionQuery(session), new RatingBody(value), cancellationToken);
+            session.ToQuery(), new RatingBody(value), cancellationToken);
 
     public Task<TmdbStatusResponse> DeleteRatingAsync(int movieId, AnySession session, CancellationToken cancellationToken = default)
         => client.DeleteAsync<TmdbStatusResponse>($"3/movie/{movieId}/rating",
-            SessionQuery(session), cancellationToken);
+            session.ToQuery(), cancellationToken);
 
-    QueryString ListQuery(string? language, int? page, string? region) => new QueryString()
-        .Add("language", language ?? client.DefaultLanguage)
-        .Add("page", page)
-        .Add("region", region ?? client.DefaultRegion);
-
-    static QueryString SessionQuery(AnySession session) => new QueryString()
-        .Add("session_id", session.UserSessionId)
-        .Add("guest_session_id", session.GuestSessionId);
 }
 
 /// <summary>
