@@ -38,6 +38,29 @@ static class LiveCheck
         check(popular.Results is { Count: > 0 }, "results should be populated");
         Console.WriteLine($"  paging:    page {popular.Page}/{popular.TotalPages}, {popular.Results!.Count} results");
 
+        // 2b. Movie reviews: a paged sub-resource whose items carry timestamps, so this covers
+        //     both the page envelope and the DateTimeOffset converter on real data.
+        var reviews = await client.Movies.GetReviewsAsync(603);
+        check(reviews.Page == 1, "reviews should default to page 1");
+        check(reviews.Results is { Count: > 0 }, "The Matrix should have reviews");
+        check(reviews.TotalResults >= reviews.Results!.Count, "total should cover the page");
+
+        var review = reviews.Results[0];
+        check(!string.IsNullOrEmpty(review.Id), "a review carries an id");
+        check(!string.IsNullOrEmpty(review.Author), "a review carries an author");
+        check(!string.IsNullOrEmpty(review.Content), "a review carries content");
+        check(review.CreatedAt is not null, "created_at should parse into DateTimeOffset");
+        check(review.CreatedAt <= DateTimeOffset.UtcNow, "created_at should not be in the future");
+        Console.WriteLine($"  reviews:   {reviews.TotalResults} total, first by {review.Author} " +
+                          $"on {review.CreatedAt:yyyy-MM-dd} ({review.Content!.Length} chars)");
+
+        // The full review endpoint resolves the same id with author details attached.
+        var full = await client.Reviews.GetAsync(review.Id!);
+        check(full.Id == review.Id, "the review endpoint should resolve the same review");
+        check(full.MediaId == 603, "the review should point back at the movie");
+        Console.WriteLine($"  review:    {full.Id} -> media {full.MediaId} \"{full.MediaTitle}\", " +
+                          $"rating {full.AuthorDetails?.Rating?.ToString() ?? "none"}");
+
         // 3. TV: the three-level nesting, and aggregate credits (roles, not a single character).
         var series = await client.Tv.GetAsync(1396, TvSeriesAppend.AggregateCredits | TvSeriesAppend.ContentRatings);
         check(series.Id == 1396, "series 1396 should come back");
