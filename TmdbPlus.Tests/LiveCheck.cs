@@ -183,7 +183,47 @@ static class LiveCheck
         Console.WriteLine($"  reference: {collection.Name} ({collection.Parts!.Count} films), " +
                           $"credit -> {credit.Person!.Name}, {genres.Genres!.Count} genres");
 
-        // 8. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
+        // 8. v4. Reading a public list needs no user token, so the shape and the /4 routing are
+        //    checkable here. The write path needs a user-approved access token, which cannot be
+        //    obtained without a browser -- so it is exercised only as far as the request token.
+        var v4List = await client.V4Lists.GetAsync(1);
+        check(v4List.Id == 1, "v4 list 1 should come back");
+        check(v4List.Results is { Count: > 0 }, "a v4 list carries its items");
+        check(v4List.CreatedBy?.Username is not null, "a v4 list names its owner");
+        Console.WriteLine($"  v4 list:   \"{v4List.Name}\" by {v4List.CreatedBy!.Username}, " +
+                          $"{v4List.TotalResults} items, public={v4List.Public}");
+
+        // The mixed-media claim: v4 lists can hold movies AND series, which v3 cannot.
+        var kinds = v4List.Results!.Select(r => r.MediaType.Value).Distinct().ToList();
+        check(kinds.All(k => k != MediaType.Unknown), "every v4 item has a known media type");
+        Console.WriteLine($"  v4 mixed:  item types = {string.Join('/', kinds)}");
+
+        // item_status answers 404 for an absent item rather than success:false, so the "is it on
+        // the list" question is asked through the exception. Both directions are checked.
+        var present = v4List.Results[0];
+        var onList = await client.V4Lists.GetItemStatusAsync(1, present.MediaType.Value, present.Id);
+        check(onList.Success, "an item that IS on the list reports success");
+
+        try
+        {
+            await client.V4Lists.GetItemStatusAsync(1, MediaType.Movie, 550);
+            check(false, "an absent item should 404");
+        }
+        catch (TmdbApiException ex)
+        {
+            check(ex.StatusCode == 34, $"absent item should be status_code 34, got {ex.StatusCode}");
+        }
+        Console.WriteLine($"  v4 status: \"{present.DisplayName}\" on list = {onList.Success}, " +
+                          $"absent item -> 404/34");
+
+        // Step 1 of the v4 auth flow works with the application token alone.
+        var v4Token = await client.V4Authentication.CreateRequestTokenAsync();
+        check(v4Token.Success, $"v4 request token should be issued: {v4Token.StatusMessage}");
+        check(!string.IsNullOrEmpty(v4Token.RequestToken), "a request token should come back");
+        Console.WriteLine($"  v4 auth:   request token issued ({v4Token.RequestToken![..8]}...), " +
+                          $"approval needs a browser");
+
+        // 9. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
         try
         {
             await client.Movies.GetAsync(999999999);

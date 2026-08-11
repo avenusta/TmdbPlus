@@ -8,11 +8,21 @@ namespace TmdbPlus.Auth;
 /// </summary>
 public sealed class TmdbAuthHandler(IOptionsMonitor<TmdbOptions> options) : DelegatingHandler
 {
+    /// <summary>
+    /// Lets a single request carry a different bearer token. v4's user-scoped endpoints need the
+    /// user's access token rather than the application one, and the token has to reach the
+    /// handler without becoming client state.
+    /// </summary>
+    internal static readonly HttpRequestOptionsKey<string> TokenOverride = new("TmdbPlus.Token");
+
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var opts = options.CurrentValue;
-        var token = opts.TokenResolver?.Invoke() ?? opts.ReadAccessToken;
+
+        var token = request.Options.TryGetValue(TokenOverride, out var perRequest)
+            ? perRequest
+            : opts.TokenResolver?.Invoke() ?? opts.ReadAccessToken;
 
         if (string.IsNullOrWhiteSpace(token))
             throw new InvalidOperationException(

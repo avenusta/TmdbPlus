@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
+using TmdbPlus.Auth;
 using TmdbPlus.Endpoints;
 using TmdbPlus.Json;
 using TmdbPlus.Models;
@@ -47,6 +48,10 @@ public sealed class TmdbClient : ITmdbClient
         Reviews = new ReviewEndpoints(this);
         WatchProviders = new WatchProviderEndpoints(this);
         Changes = new ChangesEndpoints(this);
+
+        V4Authentication = new V4AuthenticationEndpoints(this);
+        V4Account = new V4AccountEndpoints(this);
+        V4Lists = new V4ListEndpoints(this);
     }
 
     public IMovieEndpoints Movies { get; }
@@ -71,6 +76,15 @@ public sealed class TmdbClient : ITmdbClient
     public IReviewEndpoints Reviews { get; }
     public IWatchProviderEndpoints WatchProviders { get; }
     public IChangesEndpoints Changes { get; }
+
+    /// <summary>The v4 auth flow. v4 is hand-written; the OpenAPI spec covers only v3.</summary>
+    public IV4AuthenticationEndpoints V4Authentication { get; }
+
+    /// <summary>v4 account endpoints, keyed by the string account object id.</summary>
+    public IV4AccountEndpoints V4Account { get; }
+
+    /// <summary>v4 lists — TMDB's recommended list API: mixed media, private, per-item comments.</summary>
+    public IV4ListEndpoints V4Lists { get; }
 
     /// <summary>
     /// Shared serializer options. Endpoints bind JSON straight into the public types, so the
@@ -109,22 +123,29 @@ public sealed class TmdbClient : ITmdbClient
     // The one path every endpoint goes through.
     // ---------------------------------------------------------------------
 
-    internal Task<T> GetAsync<T>(string path, QueryString query, CancellationToken ct)
-        => SendAsync<T>(new HttpRequestMessage(HttpMethod.Get, path + query), ct);
+    internal Task<T> GetAsync<T>(string path, QueryString query, CancellationToken ct, string? token = null)
+        => SendAsync<T>(Build(HttpMethod.Get, path + query, null, token), ct);
 
-    internal Task<T> PostAsync<T>(string path, QueryString query, object? body, CancellationToken ct)
-    {
-        var request = new HttpRequestMessage(HttpMethod.Post, path + query);
-        if (body is not null) request.Content = JsonContent.Create(body, options: Json);
-        return SendAsync<T>(request, ct);
-    }
+    internal Task<T> PostAsync<T>(string path, QueryString query, object? body, CancellationToken ct, string? token = null)
+        => SendAsync<T>(Build(HttpMethod.Post, path + query, body, token), ct);
 
-    /// <summary>DELETE carries a body on <c>/authentication/session</c>, so one is allowed here.</summary>
-    internal Task<T> DeleteAsync<T>(string path, QueryString query, CancellationToken ct, object? body = null)
+    internal Task<T> PutAsync<T>(string path, QueryString query, object? body, CancellationToken ct, string? token = null)
+        => SendAsync<T>(Build(HttpMethod.Put, path + query, body, token), ct);
+
+    /// <summary>DELETE carries a body on <c>/authentication/session</c> and across v4, so one is allowed.</summary>
+    internal Task<T> DeleteAsync<T>(string path, QueryString query, CancellationToken ct, object? body = null, string? token = null)
+        => SendAsync<T>(Build(HttpMethod.Delete, path + query, body, token), ct);
+
+    /// <summary>
+    /// A <paramref name="token"/> overrides the configured one for this request alone — v4's
+    /// user-scoped calls need the user's access token without the client holding it.
+    /// </summary>
+    static HttpRequestMessage Build(HttpMethod method, string url, object? body, string? token)
     {
-        var request = new HttpRequestMessage(HttpMethod.Delete, path + query);
-        if (body is not null) request.Content = JsonContent.Create(body, options: Json);
-        return SendAsync<T>(request, ct);
+        var request = new HttpRequestMessage(method, url);
+        if (body is not null) request.Content = JsonContent.Create(body, body.GetType(), options: Json);
+        if (token is not null) request.Options.Set(TmdbAuthHandler.TokenOverride, token);
+        return request;
     }
 
     async Task<T> SendAsync<T>(HttpRequestMessage request, CancellationToken ct)
@@ -173,4 +194,7 @@ public interface ITmdbClient
     IReviewEndpoints Reviews { get; }
     IWatchProviderEndpoints WatchProviders { get; }
     IChangesEndpoints Changes { get; }
+    IV4AuthenticationEndpoints V4Authentication { get; }
+    IV4AccountEndpoints V4Account { get; }
+    IV4ListEndpoints V4Lists { get; }
 }
