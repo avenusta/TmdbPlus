@@ -4,4 +4,6 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .idea/
-Client/
+TmdbClient.Generated.cs
+.env
+audit/

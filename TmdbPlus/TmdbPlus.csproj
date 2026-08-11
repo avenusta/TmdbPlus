@@ -5,8 +5,19 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>TmdbPlus</RootNamespace>
-        <!-- The generated client leaves non-nullable DTO properties uninitialized; nswag owns that file. -->
-        <NoWarn>$(NoWarn);CS8618</NoWarn>
     </PropertyGroup>
+
+    <!--
+      The nswag output is reference material, not code: an index of TMDB's 152 paths and
+      parameter names to consult while hand-writing an endpoint. It is not compiled because its
+      methods hardcode their return type (so they cannot yield our public types), its DTOs cannot
+      hold append_to_response blocks at all, and it declares 1 nullable property in 48,669 lines.
+      Routing through it would drop data and cost ~5,554 mapping assignments.
+      See https://github.com/avenusta/TmdbPlus/issues/9.
+    -->
+    <ItemGroup>
+        <Compile Remove="Client/TmdbClient.Generated.cs" />
+        <None Include="Client/TmdbClient.Generated.cs" />
+    </ItemGroup>
 
 </Project>
