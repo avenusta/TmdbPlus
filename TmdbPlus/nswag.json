@@ -1,0 +1,37 @@
+{
+  "runtime": "Net100",
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "https://developer.themoviedb.org/openapi/tmdb-api.json",
+      "output": null
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "namespace": "TmdbPlus.Client",
+      "className": "TmdbClient",
+      "generateClientInterfaces": true,
+      "injectHttpClient": true,
+      "useBaseUrl": true,
+      "generateBaseUrlProperty": true,
+      "httpClientType": "System.Net.Http.HttpClient",
+      "generateResponseClasses": true,
+      "responseClassNamePattern": "{controller}{operation}Response",
+      "generateDtoTypes": true,
+      "operationGenerationMode": "MultipleClientsFromOperationId",
+      "generateExceptionClasses": true,
+      "exceptionClass": "TmdbApiException",
+      "wrapResponses": false,
+      "generateOptionalParameters": true,
+      "parameterDateTimeFormat": "s",
+      "generateJsonMethods": false,
+      "enforceFlagEnums": false,
+      "useRequiredKeyword": true,
+      "generateNullableReferenceTypes": true,
+      "generateDefaultValues": true,
+      "requiredPropertiesMustBeDefined": false,
+      "jsonLibrary": "SystemTextJson",
+      "output": "Client/TmdbClient.Generated.cs"
+    }
+  }
+}
