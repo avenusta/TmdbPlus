@@ -71,7 +71,40 @@ static class LiveCheck
         Console.WriteLine($"  people:    {person.Name} ({person.Birthday}), " +
                           $"{credits.Count} credits = {movies} movies + {shows} tv");
 
-        // 5. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
+        // 5. Search, discover, find: query building under real filters.
+        var multi = await client.Search.MultiAsync("matrix");
+        check(multi.Results is { Count: > 0 }, "multi search should return results");
+        check(multi.Results!.Any(r => r.MediaType.Value == MediaType.Movie), "multi should include movies");
+        check(multi.Results.All(r => r.MediaType.IsKnown), "every multi result has a known media type");
+        Console.WriteLine($"  search:    \"matrix\" -> {multi.TotalResults} results, " +
+                          $"types: {string.Join('/', multi.Results.Select(r => r.MediaType.Value).Distinct())}");
+
+        // Discover with several filters at once -- the dotted parameter names have to survive.
+        var discovered = await client.Discover.MoviesAsync(new DiscoverMovieOptions
+        {
+            SortBy = MovieSortBy.VoteAverageDesc,
+            VoteCountFrom = 5000,
+            PrimaryReleaseDateFrom = new DateOnly(1990, 1, 1),
+            PrimaryReleaseDateTo = new DateOnly(1999, 12, 31),
+        });
+        check(discovered.Results is { Count: > 0 }, "discover should return results");
+        var years = discovered.Results!.Where(m => m.ReleaseDate is not null)
+                                      .Select(m => m.ReleaseDate!.Value.Year).ToList();
+        check(years.All(y => y is >= 1990 and <= 1999), "the date filter must actually apply");
+        Console.WriteLine($"  discover:  top 90s film = {discovered.Results[0].Title} " +
+                          $"({discovered.Results[0].VoteAverage:0.0}), all {years.Count} in range");
+
+        var found = await client.Find.ByExternalIdAsync("tt0133093");
+        check(found.MovieResults is { Count: > 0 }, "find by imdb id should resolve");
+        check(found.MovieResults![0].Id == 603, "tt0133093 is The Matrix");
+        Console.WriteLine($"  find:      tt0133093 -> {found.MovieResults[0].Title}");
+
+        var trending = await client.Trending.AllAsync(TimeWindow.Week);
+        check(trending.Results is { Count: > 0 }, "trending should return results");
+        Console.WriteLine($"  trending:  {trending.Results!.Count} this week, " +
+                          $"top = {trending.Results[0].DisplayName}");
+
+        // 6. The error path: TmdbApiException must carry TMDB's status_code, not lose it.
         try
         {
             await client.Movies.GetAsync(999999999);

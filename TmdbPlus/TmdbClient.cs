@@ -28,11 +28,19 @@ public sealed class TmdbClient : ITmdbClient
         Movies = new MovieEndpoints(this);
         Tv = new TvEndpoints(this);
         People = new PeopleEndpoints(this);
+        Search = new SearchEndpoints(this);
+        Discover = new DiscoverEndpoints(this);
+        Trending = new TrendingEndpoints(this);
+        Find = new FindEndpoints(this);
     }
 
     public IMovieEndpoints Movies { get; }
     public ITvEndpoints Tv { get; }
     public IPeopleEndpoints People { get; }
+    public ISearchEndpoints Search { get; }
+    public IDiscoverEndpoints Discover { get; }
+    public ITrendingEndpoints Trending { get; }
+    public IFindEndpoints Find { get; }
 
     /// <summary>
     /// Shared serializer options. Endpoints bind JSON straight into the public types, so the
@@ -111,4 +119,8 @@ public interface ITmdbClient
     IMovieEndpoints Movies { get; }
     ITvEndpoints Tv { get; }
     IPeopleEndpoints People { get; }
+    ISearchEndpoints Search { get; }
+    IDiscoverEndpoints Discover { get; }
+    ITrendingEndpoints Trending { get; }
+    IFindEndpoints Find { get; }
 }
