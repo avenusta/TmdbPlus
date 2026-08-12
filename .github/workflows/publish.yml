@@ -8,6 +8,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC token for nuget.org trusted publishing
     steps:
       - uses: actions/checkout@v4
 
@@ -18,5 +20,11 @@ jobs:
       # Only the library: TmdbPlus.Tests runs against live TMDB fixtures in gitignored audit/.
       - run: dotnet pack TmdbPlus/TmdbPlus.csproj -c Release -o out
 
+      # Trades the OIDC token for an API key valid 1 hour, so it goes right before the push.
+      - uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       # skip-duplicate: re-pushing an unbumped <Version> is a no-op, not a failed run.
-      - run: dotnet nuget push "out/*.nupkg" -s https://api.nuget.org/v3/index.json -k "${{ secrets.NUGET_API_KEY }}" --skip-duplicate
+      - run: dotnet nuget push "out/*.nupkg" -s https://api.nuget.org/v3/index.json -k "${{ steps.login.outputs.NUGET_API_KEY }}" --skip-duplicate
