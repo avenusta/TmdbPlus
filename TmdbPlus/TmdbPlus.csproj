@@ -16,6 +16,13 @@
         <RepositoryUrl>https://github.com/avenusta/TmdbPlus</RepositoryUrl>
         <PackageTags>tmdb;movies;tv;api-client</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+
+        <!-- SourceLink ships in the SDK since .NET 8, so no PackageReference. Symbols go as a
+             separate .snupkg; nuget.org wants that format. -->
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <ItemGroup>

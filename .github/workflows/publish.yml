@@ -18,7 +18,9 @@ jobs:
           dotnet-version: '10.0.x'
 
       # Only the library: TmdbPlus.Tests runs against live TMDB fixtures in gitignored audit/.
-      - run: dotnet pack TmdbPlus/TmdbPlus.csproj -c Release -o out
+      # ContinuousIntegrationBuild lives here, not the csproj: it normalizes source paths, which
+      # is right for a shipped build but breaks local debugging.
+      - run: dotnet pack TmdbPlus/TmdbPlus.csproj -c Release -o out -p:ContinuousIntegrationBuild=true
 
       # Trades the OIDC token for an API key valid 1 hour, so it goes right before the push.
       - uses: NuGet/login@v1
