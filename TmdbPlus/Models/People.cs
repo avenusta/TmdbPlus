@@ -42,7 +42,8 @@ internal static class PersonAppendExtensions
     }
 }
 
-public interface IPersonDetails
+public interface IPersonDetails<TExternalIds>
+    where TExternalIds : IPersonExternalIds
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -58,9 +59,19 @@ public interface IPersonDetails
     DateOnly? Birthday { get; set; }
     DateOnly? Deathday { get; set; }
     IList<string>? AlsoKnownAs { get; set; }
+
+    // Nested collections and append blocks: null unless the call requested them.
+    CombinedCredits? CombinedCredits { get; set; }
+    PersonMovieCredits? MovieCredits { get; set; }
+    PersonTvCredits? TvCredits { get; set; }
+    TExternalIds? ExternalIds { get; set; }
+    PersonImages? Images { get; set; }
+    PagedResult<TaggedImage>? TaggedImages { get; set; }
+    PersonTranslations? Translations { get; set; }
+    ChangesResult? Changes { get; set; }
 }
 
-public class PersonDetails : IPersonDetails
+public class PersonDetails : IPersonDetails<PersonExternalIds>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool Adult { get; set; }
@@ -95,7 +106,7 @@ public class PersonDetails : IPersonDetails
     [JsonPropertyName("changes")] public ChangesResult? Changes { get; set; }
 }
 
-public class PersonSummary
+public class PersonSummary : IPersonSummary<CombinedCastCredit>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool Adult { get; set; }
@@ -115,7 +126,7 @@ public class PersonSummary
 // media_type -- the one place MediaType is load-bearing rather than decorative.
 // ---------------------------------------------------------------------------
 
-public class CombinedCredits
+public class CombinedCredits : ICombinedCredits<CombinedCastCredit, CombinedCrewCredit>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("cast")] public IList<CombinedCastCredit>? Cast { get; set; }
@@ -127,7 +138,7 @@ public class CombinedCredits
 /// (<c>name</c>, <c>first_air_date</c>, <c>episode_count</c>) are both present on the type;
 /// which are populated depends on <see cref="MediaType"/>.
 /// </summary>
-public class CombinedCastCredit
+public class CombinedCastCredit : ICombinedCastCredit
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool Adult { get; set; }
@@ -173,7 +184,7 @@ public class CombinedCastCredit
 }
 
 /// <inheritdoc cref="CombinedCastCredit"/>
-public class CombinedCrewCredit
+public class CombinedCrewCredit : ICombinedCrewCredit
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool Adult { get; set; }
@@ -191,7 +202,7 @@ public class CombinedCrewCredit
 
     [JsonPropertyName("department")]
     [JsonConverter(typeof(TmdbEnumValueConverter<CreditDepartment>))]
-    public TmdbEnum<CreditDepartment> Department { get; set; }
+    public TmdbEnum<CreditDepartment>? Department { get; set; }
 
     [JsonPropertyName("credit_id")] public string? CreditId { get; set; }
     [JsonPropertyName("overview")] public string? Overview { get; set; }
@@ -220,7 +231,7 @@ public class CombinedCrewCredit
 }
 
 /// <summary>Movie-only credits: the same entries, without the TV fields or a media type.</summary>
-public class PersonMovieCredits
+public class PersonMovieCredits : IPersonMovieCredits<CombinedCastCredit, CombinedCrewCredit>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("cast")] public IList<CombinedCastCredit>? Cast { get; set; }
@@ -228,7 +239,7 @@ public class PersonMovieCredits
 }
 
 /// <summary>TV-only credits.</summary>
-public class PersonTvCredits
+public class PersonTvCredits : IPersonTvCredits<CombinedCastCredit, CombinedCrewCredit>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("cast")] public IList<CombinedCastCredit>? Cast { get; set; }
@@ -239,7 +250,7 @@ public class PersonTvCredits
 // Person-specific blocks
 // ---------------------------------------------------------------------------
 
-public class PersonImages
+public class PersonImages : IPersonImages
 {
     [JsonPropertyName("id")] public int Id { get; set; }
 
@@ -248,7 +259,7 @@ public class PersonImages
 }
 
 /// <summary>An image the person is tagged in, carrying the media it belongs to.</summary>
-public class TaggedImage
+public class TaggedImage : ITaggedImage<CombinedCastCredit>
 {
     [JsonPropertyName("id")] public string? Id { get; set; }
     [JsonPropertyName("file_path")] public string? FilePath { get; set; }
@@ -268,7 +279,7 @@ public class TaggedImage
     [JsonPropertyName("media")] public CombinedCastCredit? Media { get; set; }
 }
 
-public class PersonExternalIds
+public class PersonExternalIds : IPersonExternalIds
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("imdb_id")] public string? ImdbId { get; set; }
@@ -283,13 +294,13 @@ public class PersonExternalIds
     [JsonPropertyName("tvrage_id")] public int? TvrageId { get; set; }
 }
 
-public class PersonTranslations
+public class PersonTranslations : IPersonTranslations
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("translations")] public IList<PersonTranslation>? Translations { get; set; }
 }
 
-public class PersonTranslation
+public class PersonTranslation : IPersonTranslation
 {
     [JsonPropertyName("iso_3166_1")] public string? Iso3166_1 { get; set; }
     [JsonPropertyName("iso_639_1")] public string? Iso639_1 { get; set; }
@@ -298,7 +309,7 @@ public class PersonTranslation
     [JsonPropertyName("data")] public PersonTranslationData? Data { get; set; }
 }
 
-public class PersonTranslationData
+public class PersonTranslationData : IPersonTranslationData
 {
     [JsonPropertyName("biography")] public string? Biography { get; set; }
 }

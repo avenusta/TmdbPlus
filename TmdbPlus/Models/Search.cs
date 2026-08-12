@@ -9,7 +9,7 @@ namespace TmdbPlus.Models;
 /// converter, every field sits on the one type: the alternative costs a converter plus a second
 /// deserialization pass, for a shape callers still have to branch on.
 /// </summary>
-public class MultiSearchResult
+public class MultiSearchResult : IMultiSearchResult<CombinedCastCredit>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool Adult { get; set; }
@@ -57,7 +57,7 @@ public class MultiSearchResult
 }
 
 /// <summary>A collection as returned by search and by the collection endpoints.</summary>
-public class CollectionSummary
+public class CollectionSummary : ICollectionSummary
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -69,7 +69,7 @@ public class CollectionSummary
     [JsonPropertyName("adult")] public bool Adult { get; set; }
 }
 
-public class CompanySummary
+public class CompanySummary : ICompanySummary
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -81,7 +81,7 @@ public class CompanySummary
 /// The <c>/find/{external_id}</c> response — one array per media type, since an external id can
 /// match at any level.
 /// </summary>
-public class FindResults
+public class FindResults : IFindResults<MovieSummary, TvSeriesSummary, PersonSummary, SeasonSummary, EpisodeSummary>
 {
     [JsonPropertyName("movie_results")] public IList<MovieSummary>? MovieResults { get; set; }
     [JsonPropertyName("tv_results")] public IList<TvSeriesSummary>? TvResults { get; set; }

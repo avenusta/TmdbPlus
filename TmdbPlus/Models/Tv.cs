@@ -9,7 +9,15 @@ namespace TmdbPlus.Models;
 // Series
 // ---------------------------------------------------------------------------
 
-public interface ITvSeriesDetails
+public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCompanies, TSeasons, TLastEpisodeToAir, TNextEpisodeToAir, TExternalIds>
+    where TGenres : IGenre
+    where TCreatedBy : ISeriesCreator
+    where TNetworks : INetwork
+    where TProductionCompanies : IProductionCompany
+    where TSeasons : ISeasonSummary
+    where TLastEpisodeToAir : IEpisodeSummary
+    where TNextEpisodeToAir : IEpisodeSummary
+    where TExternalIds : ITvExternalIds
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -30,19 +38,47 @@ public interface ITvSeriesDetails
     string? BackdropPath { get; set; }
     string? PosterPath { get; set; }
     string? Type { get; set; }
-    TmdbEnum<MediaStatus> Status { get; set; }
+    TmdbEnum<MediaStatus>? Status { get; set; }
     DateOnly? FirstAirDate { get; set; }
     DateOnly? LastAirDate { get; set; }
     IList<int>? EpisodeRunTime { get; set; }
     IList<string>? Languages { get; set; }
     IList<string>? OriginCountry { get; set; }
+
+    // Nested collections and append blocks: null unless the call requested them.
+    IList<TGenres>? Genres { get; set; }
+    IList<TCreatedBy>? CreatedBy { get; set; }
+    IList<TNetworks>? Networks { get; set; }
+    IList<TProductionCompanies>? ProductionCompanies { get; set; }
+    IList<ProductionCountry>? ProductionCountries { get; set; }
+    IList<SpokenLanguage>? SpokenLanguages { get; set; }
+    IList<TSeasons>? Seasons { get; set; }
+    TLastEpisodeToAir? LastEpisodeToAir { get; set; }
+    TNextEpisodeToAir? NextEpisodeToAir { get; set; }
+    Credits? Credits { get; set; }
+    AggregateCredits? AggregateCredits { get; set; }
+    Images? Images { get; set; }
+    ResultsOf<Video>? Videos { get; set; }
+    TvKeywords? Keywords { get; set; }
+    TExternalIds? ExternalIds { get; set; }
+    TvAlternativeTitles? AlternativeTitles { get; set; }
+    TvTranslations? Translations { get; set; }
+    ResultsOf<ContentRating>? ContentRatings { get; set; }
+    ResultsOf<EpisodeGroupSummary>? EpisodeGroups { get; set; }
+    ResultsOf<ScreenedTheatrically>? ScreenedTheatrically { get; set; }
+    ChangesResult? Changes { get; set; }
+    PagedResult<TvSeriesSummary>? Recommendations { get; set; }
+    PagedResult<TvSeriesSummary>? Similar { get; set; }
+    PagedResult<Review>? Reviews { get; set; }
+    PagedResult<ListSummary>? Lists { get; set; }
+    ResultsMap<CountryWatchProviders>? WatchProviders { get; set; }
 }
 
 /// <summary>
 /// A TV series, with one nullable property per append block. A block is <c>null</c> unless it
 /// was requested (issue #3).
 /// </summary>
-public class TvSeriesDetails : ITvSeriesDetails
+public class TvSeriesDetails : ITvSeriesDetails<Genre, SeriesCreator, Network, ProductionCompany, SeasonSummary, EpisodeSummary, EpisodeSummary, TvExternalIds>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool Adult { get; set; }
@@ -68,7 +104,7 @@ public class TvSeriesDetails : ITvSeriesDetails
 
     [JsonPropertyName("status")]
     [JsonConverter(typeof(TmdbEnumValueConverter<MediaStatus>))]
-    public TmdbEnum<MediaStatus> Status { get; set; }
+    public TmdbEnum<MediaStatus>? Status { get; set; }
 
     [JsonPropertyName("first_air_date")]
     [JsonConverter(typeof(TmdbDateOnlyConverter))]
@@ -152,7 +188,7 @@ public class TvSeriesSummary : ITvSeriesSummary
     [JsonPropertyName("origin_country")] public IList<string>? OriginCountry { get; set; }
 }
 
-public class SeriesCreator
+public class SeriesCreator : ISeriesCreator
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("credit_id")] public string? CreditId { get; set; }
@@ -162,7 +198,7 @@ public class SeriesCreator
     [JsonPropertyName("profile_path")] public string? ProfilePath { get; set; }
 }
 
-public class Network
+public class Network : INetwork
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -176,7 +212,7 @@ public class Network
 // Season
 // ---------------------------------------------------------------------------
 
-public class SeasonSummary
+public class SeasonSummary : ISeasonSummary
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -191,7 +227,10 @@ public class SeasonSummary
     public DateOnly? AirDate { get; set; }
 }
 
-public interface ITvSeasonDetails
+public interface ITvSeasonDetails<TEpisodes, TNetworks, TExternalIds>
+    where TEpisodes : ITvEpisodeDetails<CrewMember, CastMember, TvExternalIds>
+    where TNetworks : INetwork
+    where TExternalIds : ITvExternalIds
 {
     int Id { get; set; }
     string? Name { get; set; }
@@ -200,13 +239,25 @@ public interface ITvSeasonDetails
     int SeasonNumber { get; set; }
     double VoteAverage { get; set; }
     DateOnly? AirDate { get; set; }
+
+    // Nested collections and append blocks: null unless the call requested them.
+    string? InternalId { get; set; }
+    IList<TEpisodes>? Episodes { get; set; }
+    IList<TNetworks>? Networks { get; set; }
+    Credits? Credits { get; set; }
+    AggregateCredits? AggregateCredits { get; set; }
+    Images? Images { get; set; }
+    ResultsOf<Video>? Videos { get; set; }
+    TExternalIds? ExternalIds { get; set; }
+    TvTranslations? Translations { get; set; }
+    ResultsMap<CountryWatchProviders>? WatchProviders { get; set; }
 }
 
 /// <summary>
 /// A season. Note <c>changes</c> is NOT appendable here — TMDB rejects it, and the season-level
 /// changes endpoint is keyed by season id rather than series/season number (issue #6).
 /// </summary>
-public class TvSeasonDetails : ITvSeasonDetails
+public class TvSeasonDetails : ITvSeasonDetails<TvEpisodeDetails, Network, TvExternalIds>
 {
     /// <summary>TMDB returns this alongside <c>id</c>; it is the internal object id.</summary>
     [JsonPropertyName("_id")] public string? InternalId { get; set; }
@@ -239,7 +290,7 @@ public class TvSeasonDetails : ITvSeasonDetails
 // Episode
 // ---------------------------------------------------------------------------
 
-public class EpisodeSummary
+public class EpisodeSummary : IEpisodeSummary
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -255,14 +306,17 @@ public class EpisodeSummary
 
     [JsonPropertyName("episode_type")]
     [JsonConverter(typeof(TmdbEnumValueConverter<EpisodeType>))]
-    public TmdbEnum<EpisodeType> EpisodeType { get; set; }
+    public TmdbEnum<EpisodeType>? EpisodeType { get; set; }
 
     [JsonPropertyName("air_date")]
     [JsonConverter(typeof(TmdbDateOnlyConverter))]
     public DateOnly? AirDate { get; set; }
 }
 
-public interface ITvEpisodeDetails
+public interface ITvEpisodeDetails<TCrew, TGuestStars, TExternalIds>
+    where TCrew : ICrewMember
+    where TGuestStars : ICastMember
+    where TExternalIds : ITvExternalIds
 {
     int Id { get; set; }
     string? Name { get; set; }
@@ -273,12 +327,23 @@ public interface ITvEpisodeDetails
     int? Runtime { get; set; }
     double VoteAverage { get; set; }
     int VoteCount { get; set; }
-    TmdbEnum<EpisodeType> EpisodeType { get; set; }
+    TmdbEnum<EpisodeType>? EpisodeType { get; set; }
     DateOnly? AirDate { get; set; }
+
+    // Nested collections and append blocks: null unless the call requested them.
+    string? ProductionCode { get; set; }
+    int ShowId { get; set; }
+    IList<TCrew>? Crew { get; set; }
+    IList<TGuestStars>? GuestStars { get; set; }
+    EpisodeCredits? Credits { get; set; }
+    Images? Images { get; set; }
+    ResultsOf<Video>? Videos { get; set; }
+    TExternalIds? ExternalIds { get; set; }
+    TvTranslations? Translations { get; set; }
 }
 
 /// <summary>An episode. <c>changes</c> is not appendable here either (issue #6).</summary>
-public class TvEpisodeDetails : ITvEpisodeDetails
+public class TvEpisodeDetails : ITvEpisodeDetails<CrewMember, CastMember, TvExternalIds>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -294,7 +359,7 @@ public class TvEpisodeDetails : ITvEpisodeDetails
 
     [JsonPropertyName("episode_type")]
     [JsonConverter(typeof(TmdbEnumValueConverter<EpisodeType>))]
-    public TmdbEnum<EpisodeType> EpisodeType { get; set; }
+    public TmdbEnum<EpisodeType>? EpisodeType { get; set; }
 
     [JsonPropertyName("air_date")]
     [JsonConverter(typeof(TmdbDateOnlyConverter))]
@@ -314,7 +379,7 @@ public class TvEpisodeDetails : ITvEpisodeDetails
 }
 
 /// <summary>Episode credits carry guest stars alongside the usual cast and crew.</summary>
-public class EpisodeCredits : Credits
+public class EpisodeCredits : Credits, IEpisodeCredits<CastMember>
 {
     [JsonPropertyName("guest_stars")] public IList<CastMember>? GuestStars { get; set; }
 }
@@ -323,14 +388,14 @@ public class EpisodeCredits : Credits
 // Aggregate credits — the series/season shape, where a person holds several roles
 // ---------------------------------------------------------------------------
 
-public class AggregateCredits
+public class AggregateCredits : IAggregateCredits<AggregateCastMember, AggregateCrewMember>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("cast")] public IList<AggregateCastMember>? Cast { get; set; }
     [JsonPropertyName("crew")] public IList<AggregateCrewMember>? Crew { get; set; }
 }
 
-public class AggregateCastMember
+public class AggregateCastMember : IAggregateCastMember<AggregateRole>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -347,14 +412,14 @@ public class AggregateCastMember
     [JsonPropertyName("roles")] public IList<AggregateRole>? Roles { get; set; }
 }
 
-public class AggregateRole
+public class AggregateRole : IAggregateRole
 {
     [JsonPropertyName("credit_id")] public string? CreditId { get; set; }
     [JsonPropertyName("character")] public string? Character { get; set; }
     [JsonPropertyName("episode_count")] public int EpisodeCount { get; set; }
 }
 
-public class AggregateCrewMember
+public class AggregateCrewMember : IAggregateCrewMember<AggregateJob>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -368,12 +433,12 @@ public class AggregateCrewMember
 
     [JsonPropertyName("department")]
     [JsonConverter(typeof(TmdbEnumValueConverter<CreditDepartment>))]
-    public TmdbEnum<CreditDepartment> Department { get; set; }
+    public TmdbEnum<CreditDepartment>? Department { get; set; }
 
     [JsonPropertyName("jobs")] public IList<AggregateJob>? Jobs { get; set; }
 }
 
-public class AggregateJob
+public class AggregateJob : IAggregateJob
 {
     [JsonPropertyName("credit_id")] public string? CreditId { get; set; }
     [JsonPropertyName("job")] public string? Job { get; set; }
@@ -384,7 +449,7 @@ public class AggregateJob
 // Block wrappers and leaf types specific to TV
 // ---------------------------------------------------------------------------
 
-public class TvKeywords
+public class TvKeywords : ITvKeywords<Keyword>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
 
@@ -392,19 +457,19 @@ public class TvKeywords
     [JsonPropertyName("results")] public IList<Keyword>? Results { get; set; }
 }
 
-public class TvAlternativeTitles
+public class TvAlternativeTitles : ITvAlternativeTitles
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("results")] public IList<AlternativeTitle>? Results { get; set; }
 }
 
-public class TvTranslations
+public class TvTranslations : ITvTranslations
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("translations")] public IList<TvTranslation>? Translations { get; set; }
 }
 
-public class TvTranslation
+public class TvTranslation : ITvTranslation
 {
     [JsonPropertyName("iso_3166_1")] public string? Iso3166_1 { get; set; }
     [JsonPropertyName("iso_639_1")] public string? Iso639_1 { get; set; }
@@ -413,7 +478,7 @@ public class TvTranslation
     [JsonPropertyName("data")] public TvTranslationData? Data { get; set; }
 }
 
-public class TvTranslationData
+public class TvTranslationData : ITvTranslationData
 {
     [JsonPropertyName("name")] public string? Name { get; set; }
     [JsonPropertyName("overview")] public string? Overview { get; set; }
@@ -421,7 +486,7 @@ public class TvTranslationData
     [JsonPropertyName("homepage")] public string? Homepage { get; set; }
 }
 
-public class TvExternalIds
+public class TvExternalIds : ITvExternalIds
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("imdb_id")] public string? ImdbId { get; set; }
@@ -435,48 +500,48 @@ public class TvExternalIds
     [JsonPropertyName("freebase_id")] public string? FreebaseId { get; set; }
 }
 
-public class ContentRating
+public class ContentRating : IContentRating
 {
     [JsonPropertyName("iso_3166_1")] public string? Iso3166_1 { get; set; }
     [JsonPropertyName("rating")] public string? Rating { get; set; }
     [JsonPropertyName("descriptors")] public IList<string>? Descriptors { get; set; }
 }
 
-public class ScreenedTheatrically
+public class ScreenedTheatrically : IScreenedTheatrically
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("episode_number")] public int EpisodeNumber { get; set; }
     [JsonPropertyName("season_number")] public int SeasonNumber { get; set; }
 }
 
-public class EpisodeGroupSummary
+public class EpisodeGroupSummary : IEpisodeGroupSummary<Network>
 {
     [JsonPropertyName("id")] public string? Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
     [JsonPropertyName("description")] public string? Description { get; set; }
     [JsonPropertyName("episode_count")] public int EpisodeCount { get; set; }
     [JsonPropertyName("group_count")] public int GroupCount { get; set; }
-    [JsonPropertyName("type")] public int Type { get; set; }
+    [JsonPropertyName("type")] public int? Type { get; set; }
     [JsonPropertyName("network")] public Network? Network { get; set; }
 }
 
-public class EpisodeGroupDetails
+public class EpisodeGroupDetails : IEpisodeGroupDetails<Network, EpisodeGroup>
 {
     [JsonPropertyName("id")] public string? Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
     [JsonPropertyName("description")] public string? Description { get; set; }
     [JsonPropertyName("episode_count")] public int EpisodeCount { get; set; }
     [JsonPropertyName("group_count")] public int GroupCount { get; set; }
-    [JsonPropertyName("type")] public int Type { get; set; }
+    [JsonPropertyName("type")] public int? Type { get; set; }
     [JsonPropertyName("network")] public Network? Network { get; set; }
     [JsonPropertyName("groups")] public IList<EpisodeGroup>? Groups { get; set; }
 }
 
-public class EpisodeGroup
+public class EpisodeGroup : IEpisodeGroup<TvEpisodeDetails>
 {
     [JsonPropertyName("id")] public string? Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
-    [JsonPropertyName("order")] public int Order { get; set; }
+    [JsonPropertyName("order")] public int? Order { get; set; }
     [JsonPropertyName("locked")] public bool Locked { get; set; }
     [JsonPropertyName("episodes")] public IList<TvEpisodeDetails>? Episodes { get; set; }
 }

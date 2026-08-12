@@ -5,7 +5,11 @@ namespace TmdbPlus.Models;
 
 // Nullability from audit/nullability_decisions.json, entry "/3/movie/{movie_id}".
 
-public interface IMovieDetails
+public interface IMovieDetails<TGenres, TProductionCompanies, TBelongsToCollection, TExternalIds>
+    where TGenres : IGenre
+    where TProductionCompanies : IProductionCompany
+    where TBelongsToCollection : ICollectionRef
+    where TExternalIds : IMovieExternalIds
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -24,7 +28,7 @@ public interface IMovieDetails
     string? OriginalLanguage { get; set; }
     string? Overview { get; set; }
     string? Tagline { get; set; }
-    TmdbEnum<MediaStatus> Status { get; set; }
+    TmdbEnum<MediaStatus>? Status { get; set; }
     string? Homepage { get; set; }
     string? ImdbId { get; set; }
     string? BackdropPath { get; set; }
@@ -32,6 +36,27 @@ public interface IMovieDetails
     DateOnly? ReleaseDate { get; set; }
     int? Runtime { get; set; }
     IList<string>? OriginCountry { get; set; }
+
+    // Nested collections and append blocks: null unless the call requested them.
+    IList<TGenres>? Genres { get; set; }
+    IList<TProductionCompanies>? ProductionCompanies { get; set; }
+    IList<ProductionCountry>? ProductionCountries { get; set; }
+    IList<SpokenLanguage>? SpokenLanguages { get; set; }
+    TBelongsToCollection? BelongsToCollection { get; set; }
+    Credits? Credits { get; set; }
+    Images? Images { get; set; }
+    ResultsOf<Video>? Videos { get; set; }
+    MovieKeywords? Keywords { get; set; }
+    ResultsOf<CountryReleaseDates>? ReleaseDates { get; set; }
+    MovieAlternativeTitles? AlternativeTitles { get; set; }
+    TExternalIds? ExternalIds { get; set; }
+    MovieTranslations? Translations { get; set; }
+    ChangesResult? Changes { get; set; }
+    PagedResult<MovieSummary>? Recommendations { get; set; }
+    PagedResult<MovieSummary>? Similar { get; set; }
+    PagedResult<Review>? Reviews { get; set; }
+    PagedResult<ListSummary>? Lists { get; set; }
+    ResultsMap<CountryWatchProviders>? WatchProviders { get; set; }
 }
 
 /// <summary>
@@ -40,7 +65,7 @@ public interface IMovieDetails
 /// type rather than under a nested <c>Appends</c> object -- STJ cannot bind parent-level keys
 /// into a nested object without a converter per type plus double deserialization.
 /// </summary>
-public class MovieDetails : IMovieDetails
+public class MovieDetails : IMovieDetails<Genre, ProductionCompany, CollectionRef, MovieExternalIds>
 {
     // --- core: always present ---
     [JsonPropertyName("id")] public int Id { get; set; }
@@ -67,7 +92,7 @@ public class MovieDetails : IMovieDetails
 
     [JsonPropertyName("status")]
     [JsonConverter(typeof(TmdbEnumValueConverter<MediaStatus>))]
-    public TmdbEnum<MediaStatus> Status { get; set; }
+    public TmdbEnum<MediaStatus>? Status { get; set; }
 
     [JsonPropertyName("release_date")]
     [JsonConverter(typeof(TmdbDateOnlyConverter))]
@@ -145,12 +170,12 @@ public class MovieSummary : IMovieSummary
 /// <summary>
 /// <c>now_playing</c> and <c>upcoming</c> add a date range to the usual page shape.
 /// </summary>
-public class DatedMoviePage : PagedResult<MovieSummary>
+public class DatedMoviePage : PagedResult<MovieSummary>, IDatedMoviePage
 {
     [JsonPropertyName("dates")] public DateRange? Dates { get; set; }
 }
 
-public class DateRange
+public class DateRange : IDateRange
 {
     [JsonPropertyName("minimum")]
     [JsonConverter(typeof(TmdbDateOnlyConverter))]
@@ -166,30 +191,30 @@ public class DateRange
 // flat. The wrappers are kept rather than flattened, so the library's shape and TMDB's own docs
 // keep lining up (issue #3).
 
-public class MovieKeywords
+public class MovieKeywords : IMovieKeywords<Keyword>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("keywords")] public IList<Keyword>? Keywords { get; set; }
 }
 
-public class MovieAlternativeTitles
+public class MovieAlternativeTitles : IMovieAlternativeTitles
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("titles")] public IList<AlternativeTitle>? Titles { get; set; }
 }
 
-public class MovieTranslations
+public class MovieTranslations : IMovieTranslations
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("translations")] public IList<Translation>? Translations { get; set; }
 }
 
-public class ChangesResult
+public class ChangesResult : IChangesResult
 {
     [JsonPropertyName("changes")] public IList<ChangeGroup>? Changes { get; set; }
 }
 
-public class MovieExternalIds
+public class MovieExternalIds : IMovieExternalIds
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("imdb_id")] public string? ImdbId { get; set; }
@@ -199,13 +224,13 @@ public class MovieExternalIds
     [JsonPropertyName("twitter_id")] public string? TwitterId { get; set; }
 }
 
-public class CountryReleaseDates
+public class CountryReleaseDates : ICountryReleaseDates
 {
     [JsonPropertyName("iso_3166_1")] public string? Iso3166_1 { get; set; }
     [JsonPropertyName("release_dates")] public IList<ReleaseDateEntry>? ReleaseDates { get; set; }
 }
 
-public class ReleaseDateEntry
+public class ReleaseDateEntry : IReleaseDateEntry
 {
     [JsonPropertyName("certification")] public string? Certification { get; set; }
 
@@ -223,7 +248,7 @@ public class ReleaseDateEntry
 }
 
 /// <summary>The <c>/movie/latest</c> shape -- a full movie with no appends.</summary>
-public class MovieChangeEntry
+public class MovieChangeEntry : IMovieChangeEntry
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool? Adult { get; set; }

@@ -14,7 +14,7 @@ namespace TmdbPlus.Models;
 /// Image base URLs and the size lists TMDB serves. A full image URL is
 /// <c>{SecureBaseUrl}{size}{file_path}</c>.
 /// </summary>
-public class TmdbConfiguration
+public class TmdbConfiguration : ITmdbConfiguration
 {
     [JsonPropertyName("images")] public ImageConfiguration? Images { get; set; }
 
@@ -22,7 +22,7 @@ public class TmdbConfiguration
     [JsonPropertyName("change_keys")] public IList<string>? ChangeKeys { get; set; }
 }
 
-public class ImageConfiguration
+public class ImageConfiguration : IImageConfiguration
 {
     [JsonPropertyName("base_url")] public string? BaseUrl { get; set; }
     [JsonPropertyName("secure_base_url")] public string? SecureBaseUrl { get; set; }
@@ -33,28 +33,28 @@ public class ImageConfiguration
     [JsonPropertyName("still_sizes")] public IList<string>? StillSizes { get; set; }
 }
 
-public class CountryInfo
+public class CountryInfo : ICountryInfo
 {
     [JsonPropertyName("iso_3166_1")] public string? Iso3166_1 { get; set; }
     [JsonPropertyName("english_name")] public string? EnglishName { get; set; }
     [JsonPropertyName("native_name")] public string? NativeName { get; set; }
 }
 
-public class LanguageInfo
+public class LanguageInfo : ILanguageInfo
 {
     [JsonPropertyName("iso_639_1")] public string? Iso639_1 { get; set; }
     [JsonPropertyName("english_name")] public string? EnglishName { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
 }
 
-public class TimezoneInfo
+public class TimezoneInfo : ITimezoneInfo
 {
     [JsonPropertyName("iso_3166_1")] public string? Iso3166_1 { get; set; }
     [JsonPropertyName("zones")] public IList<string>? Zones { get; set; }
 }
 
 /// <summary>The jobs TMDB recognises, grouped by department.</summary>
-public class DepartmentJobs
+public class DepartmentJobs : IDepartmentJobs
 {
     [JsonPropertyName("department")] public string? Department { get; set; }
     [JsonPropertyName("jobs")] public IList<string>? Jobs { get; set; }
@@ -68,24 +68,24 @@ public class DepartmentJobs
 /// Certifications keyed by country code. A raw string key, not an enum: TMDB adds regions and
 /// uses non-ISO codes (issue #7).
 /// </summary>
-public class CertificationsResponse
+public class CertificationsResponse : ICertificationsResponse
 {
     [JsonPropertyName("certifications")]
     public IDictionary<string, IList<Certification>>? Certifications { get; set; }
 }
 
-public class Certification
+public class Certification : ICertification
 {
     [JsonPropertyName("certification")] public string? Value { get; set; }
     [JsonPropertyName("meaning")] public string? Meaning { get; set; }
-    [JsonPropertyName("order")] public int Order { get; set; }
+    [JsonPropertyName("order")] public int? Order { get; set; }
 }
 
 // ---------------------------------------------------------------------------
 // Genres
 // ---------------------------------------------------------------------------
 
-public class GenreList
+public class GenreList : IGenreList<Genre>
 {
     [JsonPropertyName("genres")] public IList<Genre>? Genres { get; set; }
 }
@@ -94,7 +94,7 @@ public class GenreList
 // Collections
 // ---------------------------------------------------------------------------
 
-public class CollectionDetails
+public class CollectionDetails : ICollectionDetails<MovieSummary>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -104,20 +104,20 @@ public class CollectionDetails
     [JsonPropertyName("parts")] public IList<MovieSummary>? Parts { get; set; }
 }
 
-public class CollectionImages
+public class CollectionImages : ICollectionImages
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("backdrops")] public IList<ImageInfo>? Backdrops { get; set; }
     [JsonPropertyName("posters")] public IList<ImageInfo>? Posters { get; set; }
 }
 
-public class CollectionTranslations
+public class CollectionTranslations : ICollectionTranslations
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("translations")] public IList<CollectionTranslation>? Translations { get; set; }
 }
 
-public class CollectionTranslation
+public class CollectionTranslation : ICollectionTranslation
 {
     [JsonPropertyName("iso_3166_1")] public string? Iso3166_1 { get; set; }
     [JsonPropertyName("iso_639_1")] public string? Iso639_1 { get; set; }
@@ -126,7 +126,7 @@ public class CollectionTranslation
     [JsonPropertyName("data")] public CollectionTranslationData? Data { get; set; }
 }
 
-public class CollectionTranslationData
+public class CollectionTranslationData : ICollectionTranslationData
 {
     [JsonPropertyName("title")] public string? Title { get; set; }
     [JsonPropertyName("overview")] public string? Overview { get; set; }
@@ -137,7 +137,7 @@ public class CollectionTranslationData
 // Companies and networks — same shape, different endpoints
 // ---------------------------------------------------------------------------
 
-public class CompanyDetails
+public class CompanyDetails : ICompanyDetails<CompanySummary>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -149,20 +149,20 @@ public class CompanyDetails
     [JsonPropertyName("parent_company")] public CompanySummary? ParentCompany { get; set; }
 }
 
-public class AlternativeNames
+public class AlternativeNames : IAlternativeNames
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("results")] public IList<AlternativeName>? Results { get; set; }
 }
 
-public class AlternativeName
+public class AlternativeName : IAlternativeName
 {
     [JsonPropertyName("name")] public string? Name { get; set; }
     [JsonPropertyName("type")] public string? Type { get; set; }
 }
 
 /// <summary>Companies and networks have logos only — no posters or backdrops.</summary>
-public class LogoImages
+public class LogoImages : ILogoImages
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("logos")] public IList<ImageInfo>? Logos { get; set; }
@@ -172,7 +172,7 @@ public class LogoImages
 // Keywords, credits, reviews
 // ---------------------------------------------------------------------------
 
-public class KeywordDetails
+public class KeywordDetails : IKeywordDetails
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -182,14 +182,14 @@ public class KeywordDetails
 /// A single credit, resolved from a credit id. Carries the person, the media they worked on,
 /// and — for TV — the specific episodes and seasons.
 /// </summary>
-public class CreditDetails
+public class CreditDetails : ICreditDetails<PersonSummary, CreditMedia>
 {
     [JsonPropertyName("id")] public string? Id { get; set; }
     [JsonPropertyName("job")] public string? Job { get; set; }
 
     [JsonPropertyName("department")]
     [JsonConverter(typeof(TmdbEnumValueConverter<CreditDepartment>))]
-    public TmdbEnum<CreditDepartment> Department { get; set; }
+    public TmdbEnum<CreditDepartment>? Department { get; set; }
 
     [JsonPropertyName("credit_type")] public string? CreditType { get; set; }
 
@@ -201,7 +201,7 @@ public class CreditDetails
     [JsonPropertyName("media")] public CreditMedia? Media { get; set; }
 }
 
-public class CreditMedia
+public class CreditMedia : ICreditMedia<EpisodeSummary, SeasonSummary>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -231,7 +231,7 @@ public class CreditMedia
 }
 
 /// <summary>A review with its author's details, which the embedded review shape omits.</summary>
-public class ReviewDetails
+public class ReviewDetails : IReviewDetails
 {
     [JsonPropertyName("id")] public string? Id { get; set; }
     [JsonPropertyName("author")] public string? Author { get; set; }
@@ -256,7 +256,7 @@ public class ReviewDetails
     public DateTimeOffset? UpdatedAt { get; set; }
 }
 
-public class ReviewAuthor
+public class ReviewAuthor : IReviewAuthor
 {
     [JsonPropertyName("name")] public string? Name { get; set; }
     [JsonPropertyName("username")] public string? Username { get; set; }
@@ -268,29 +268,29 @@ public class ReviewAuthor
 // Watch providers
 // ---------------------------------------------------------------------------
 
-public class WatchProviderRegions
+public class WatchProviderRegions : IWatchProviderRegions
 {
     [JsonPropertyName("results")] public IList<WatchProviderRegion>? Results { get; set; }
 }
 
-public class WatchProviderRegion
+public class WatchProviderRegion : IWatchProviderRegion
 {
     [JsonPropertyName("iso_3166_1")] public string? Iso3166_1 { get; set; }
     [JsonPropertyName("english_name")] public string? EnglishName { get; set; }
     [JsonPropertyName("native_name")] public string? NativeName { get; set; }
 }
 
-public class WatchProviderList
+public class WatchProviderList : IWatchProviderList<WatchProviderDetails>
 {
     [JsonPropertyName("results")] public IList<WatchProviderDetails>? Results { get; set; }
 }
 
-public class WatchProviderDetails
+public class WatchProviderDetails : IWatchProviderDetails
 {
-    [JsonPropertyName("provider_id")] public int ProviderId { get; set; }
+    [JsonPropertyName("provider_id")] public int? ProviderId { get; set; }
     [JsonPropertyName("provider_name")] public string? ProviderName { get; set; }
     [JsonPropertyName("logo_path")] public string? LogoPath { get; set; }
-    [JsonPropertyName("display_priority")] public int DisplayPriority { get; set; }
+    [JsonPropertyName("display_priority")] public int? DisplayPriority { get; set; }
 
     /// <summary>Display priority varies by country, keyed by the raw region code.</summary>
     [JsonPropertyName("display_priorities")] public IDictionary<string, int>? DisplayPriorities { get; set; }
@@ -301,7 +301,7 @@ public class WatchProviderDetails
 // ---------------------------------------------------------------------------
 
 /// <summary>An id that changed in the requested window, with whether it is adult.</summary>
-public class ChangedItem
+public class ChangedItem : IChangedItem
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool? Adult { get; set; }

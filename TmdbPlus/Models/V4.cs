@@ -27,7 +27,7 @@ public class V4PagedResult<T>
 // ---------------------------------------------------------------------------
 
 /// <summary>Step 1: a request token the user then approves in a browser.</summary>
-public class V4RequestToken
+public class V4RequestToken : IV4RequestToken
 {
     [JsonPropertyName("success")] public bool Success { get; set; }
     [JsonPropertyName("status_code")] public int StatusCode { get; set; }
@@ -39,7 +39,7 @@ public class V4RequestToken
 /// Step 2: the access token, exchanged for an approved request token. This is a user-scoped
 /// bearer token — distinct from the application read access token the client is configured with.
 /// </summary>
-public class V4AccessToken
+public class V4AccessToken : IV4AccessToken
 {
     [JsonPropertyName("success")] public bool Success { get; set; }
     [JsonPropertyName("status_code")] public int StatusCode { get; set; }
@@ -51,7 +51,7 @@ public class V4AccessToken
 }
 
 /// <summary>The shared v4 response envelope.</summary>
-public class V4StatusResponse
+public class V4StatusResponse : IV4StatusResponse
 {
     [JsonPropertyName("success")] public bool Success { get; set; }
     [JsonPropertyName("status_code")] public int StatusCode { get; set; }
@@ -65,7 +65,7 @@ public class V4StatusResponse
 /// <summary>
 /// A v4 list. Items may be movies or series, so each carries its own media type.
 /// </summary>
-public class V4ListDetails
+public class V4ListDetails : IV4ListDetails<MultiSearchResult>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -89,7 +89,7 @@ public class V4ListDetails
     [JsonPropertyName("total_results")] public int TotalResults { get; set; }
 }
 
-public class V4ListOwner
+public class V4ListOwner : IV4ListOwner
 {
     [JsonPropertyName("gravatar_hash")] public string? GravatarHash { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -98,7 +98,7 @@ public class V4ListOwner
 }
 
 /// <summary>A list in the account's own listing, without its items.</summary>
-public class V4ListSummary
+public class V4ListSummary : IV4ListSummary
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -125,18 +125,18 @@ public class V4ListSummary
 }
 
 /// <summary>The response to creating a list, carrying the new id.</summary>
-public class V4CreateListResponse : V4StatusResponse
+public class V4CreateListResponse : V4StatusResponse, IV4CreateListResponse
 {
     [JsonPropertyName("id")] public int Id { get; set; }
 }
 
 /// <summary>Per-item results, so a partial failure names the item that failed.</summary>
-public class V4ListItemsResponse : V4StatusResponse
+public class V4ListItemsResponse : V4StatusResponse, IV4ListItemsResponse<V4ItemResult>
 {
     [JsonPropertyName("results")] public IList<V4ItemResult>? Results { get; set; }
 }
 
-public class V4ItemResult
+public class V4ItemResult : IV4ItemResult
 {
     [JsonPropertyName("media_id")] public int MediaId { get; set; }
     [JsonPropertyName("media_type")] public string? MediaType { get; set; }
@@ -144,7 +144,7 @@ public class V4ItemResult
 }
 
 /// <summary>Whether a given item is on a v4 list.</summary>
-public class V4ItemStatus
+public class V4ItemStatus : IV4ItemStatus
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("media_type")] public string? MediaType { get; set; }

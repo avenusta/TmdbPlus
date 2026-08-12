@@ -11,6 +11,9 @@ public interface IAccountDetails
     bool IncludeAdult { get; set; }
     string? Iso639_1 { get; set; }
     string? Iso3166_1 { get; set; }
+
+    // Nested collections and append blocks: null unless the call requested them.
+    AccountAvatar? Avatar { get; set; }
 }
 
 public class AccountDetails : IAccountDetails
@@ -24,18 +27,18 @@ public class AccountDetails : IAccountDetails
     [JsonPropertyName("avatar")] public AccountAvatar? Avatar { get; set; }
 }
 
-public class AccountAvatar
+public class AccountAvatar : IAccountAvatar
 {
     [JsonPropertyName("gravatar")] public GravatarInfo? Gravatar { get; set; }
     [JsonPropertyName("tmdb")] public TmdbAvatarInfo? Tmdb { get; set; }
 }
 
-public class GravatarInfo
+public class GravatarInfo : IGravatarInfo
 {
     [JsonPropertyName("hash")] public string? Hash { get; set; }
 }
 
-public class TmdbAvatarInfo
+public class TmdbAvatarInfo : ITmdbAvatarInfo
 {
     [JsonPropertyName("avatar_path")] public string? AvatarPath { get; set; }
 }
@@ -79,7 +82,7 @@ public sealed class WatchlistRequest
 // ---------------------------------------------------------------------------
 
 /// <summary>A request token, the first step of the v3 login flow.</summary>
-public class RequestToken
+public class RequestToken : IRequestToken
 {
     [JsonPropertyName("success")] public bool Success { get; set; }
     [JsonPropertyName("request_token")] public string? Token { get; set; }
@@ -90,7 +93,7 @@ public class RequestToken
 }
 
 /// <summary>A user session, the result of approving a request token.</summary>
-public class SessionResponse
+public class SessionResponse : ISessionResponse
 {
     [JsonPropertyName("success")] public bool Success { get; set; }
     [JsonPropertyName("session_id")] public string? SessionId { get; set; }
@@ -100,7 +103,7 @@ public class SessionResponse
 }
 
 /// <summary>A guest session. Needs no user credentials and can rate (issue #8).</summary>
-public class GuestSessionResponse
+public class GuestSessionResponse : IGuestSessionResponse
 {
     [JsonPropertyName("success")] public bool Success { get; set; }
     [JsonPropertyName("guest_session_id")] public string? GuestSessionId { get; set; }
@@ -116,7 +119,7 @@ public class GuestSessionResponse
 // Lists (v3)
 // ---------------------------------------------------------------------------
 
-public class ListDetails
+public class ListDetails : IListDetails<MovieSummary>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }
@@ -136,14 +139,14 @@ public class ListDetails
 }
 
 /// <summary>Whether a given movie is already on a list.</summary>
-public class ListItemStatus
+public class ListItemStatus : IListItemStatus
 {
     [JsonPropertyName("id")] public string? Id { get; set; }
     [JsonPropertyName("item_present")] public bool ItemPresent { get; set; }
 }
 
 /// <summary>The response to creating a list, which carries the new id.</summary>
-public class CreateListResponse : TmdbStatusResponse
+public class CreateListResponse : TmdbStatusResponse, ICreateListResponse
 {
     [JsonPropertyName("list_id")] public int ListId { get; set; }
 }

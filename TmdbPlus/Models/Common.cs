@@ -123,7 +123,7 @@ public class CrewMember : ICrewMember
     /// </summary>
     [JsonPropertyName("department")]
     [JsonConverter(typeof(TmdbEnumValueConverter<CreditDepartment>))]
-    public TmdbEnum<CreditDepartment> Department { get; set; }
+    public TmdbEnum<CreditDepartment>? Department { get; set; }
 
     [JsonPropertyName("credit_id")] public string? CreditId { get; set; }
     [JsonPropertyName("known_for_department")] public string? KnownForDepartment { get; set; }
@@ -208,10 +208,10 @@ public class Review : IReview
 
 public class WatchProvider : IWatchProvider
 {
-    [JsonPropertyName("provider_id")] public int ProviderId { get; set; }
+    [JsonPropertyName("provider_id")] public int? ProviderId { get; set; }
     [JsonPropertyName("provider_name")] public string? ProviderName { get; set; }
     [JsonPropertyName("logo_path")] public string? LogoPath { get; set; }
-    [JsonPropertyName("display_priority")] public int DisplayPriority { get; set; }
+    [JsonPropertyName("display_priority")] public int? DisplayPriority { get; set; }
 }
 
 public class CountryWatchProviders : ICountryWatchProviders<WatchProvider>

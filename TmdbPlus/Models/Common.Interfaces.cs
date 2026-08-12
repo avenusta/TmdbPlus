@@ -103,7 +103,7 @@ public interface ICrewMember
     string? Job { get; set; }
 
     /// <summary>Mapped value plus TMDB's raw text; converts implicitly to the enum.</summary>
-    TmdbEnum<CreditDepartment> Department { get; set; }
+    TmdbEnum<CreditDepartment>? Department { get; set; }
 
     string? CreditId { get; set; }
     string? KnownForDepartment { get; set; }
@@ -175,10 +175,10 @@ public interface IReview
 
 public interface IWatchProvider
 {
-    int ProviderId { get; set; }
+    int? ProviderId { get; set; }
     string? ProviderName { get; set; }
     string? LogoPath { get; set; }
-    int DisplayPriority { get; set; }
+    int? DisplayPriority { get; set; }
 }
 
 public interface ICountryWatchProviders<TProvider> where TProvider : IWatchProvider
