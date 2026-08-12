@@ -34,3 +34,9 @@ Create a client with a read access token, call endpoints, get typed results back
   Sessions are an explicit parameter on the 29 session-scoped ops, never client state.
 - Endpoints grouped by TMDB area (Movies, TV, People, Search, ...)
 - Async only, `CancellationToken` on every call
+- One call = one request. No auto-pagination, no retry, no throttling: `AddTmdb` returns
+  `IHttpClientBuilder` so the caller composes their own pipeline
+  (`.AddStandardResilienceHandler()`). TMDB serves **pages 1–500 only** — past that it answers
+  400/`status_code` 22 — while `total_pages` routinely claims far more (58,428 on
+  `discover/movie`), so it is not a walkable bound. A 429 surfaces as `TmdbApiException`; filter
+  on `HttpStatus`, there is no rate-limit subclass. See issue #16.

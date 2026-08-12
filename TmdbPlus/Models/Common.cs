@@ -8,11 +8,28 @@ namespace TmdbPlus.Models;
 // TMDbLib's prior wins, live observation only adds nullability, no evidence => nullable.
 
 /// <summary>A page of results. Named so the <c>page</c> property keeps its natural name.</summary>
+/// <remarks>
+/// Walking pages is the caller's loop — the library ships no auto-pager (issue #16), so nothing
+/// here issues more than one request.
+/// <para>
+/// <b><see cref="TotalPages"/> is not a walkable bound.</b> TMDB serves pages 1–500 only and
+/// refuses anything past it with HTTP 400, <c>status_code</c> 22 ("Pages start at 1 and max at
+/// 500"), which surfaces as <see cref="TmdbApiException"/>. <see cref="TotalPages"/> routinely
+/// reports far more — <c>discover/movie</c> claims 58,428 — so a loop that trusts it will throw
+/// at page 501. Clamp to 500, or stop when <see cref="Results"/> comes back empty.
+/// </para>
+/// </remarks>
 public class PagedResult<T> : IPagedResult<T>
 {
     [JsonPropertyName("page")] public int Page { get; set; }
     [JsonPropertyName("results")] public IList<T>? Results { get; set; }
+
+    /// <summary>
+    /// TMDB's claimed page count, which routinely exceeds the 500 pages it will actually serve.
+    /// See the remarks on <see cref="PagedResult{T}"/> before looping on this.
+    /// </summary>
     [JsonPropertyName("total_pages")] public int TotalPages { get; set; }
+
     [JsonPropertyName("total_results")] public int TotalResults { get; set; }
 }
 

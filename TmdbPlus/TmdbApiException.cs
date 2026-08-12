@@ -9,6 +9,13 @@ namespace TmdbPlus;
 /// <c>status_code: 18</c> and a usable message) and which
 /// <see cref="HttpRequestException"/> would discard.
 /// </summary>
+/// <remarks>
+/// There is no rate-limit subclass: a <c>429</c> carries nothing this type does not already hold
+/// (TMDB sends no <c>Retry-After</c>), so filter on the status instead (issue #16):
+/// <code>
+/// catch (TmdbApiException ex) when (ex.HttpStatus == HttpStatusCode.TooManyRequests)
+/// </code>
+/// </remarks>
 public sealed class TmdbApiException(
     HttpStatusCode httpStatus,
     TmdbStatusResponse? status,
