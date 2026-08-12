@@ -34,7 +34,11 @@ Create a client with a read access token, call endpoints, get typed results back
   Sessions are an explicit parameter on the 29 session-scoped ops, never client state.
 - Endpoints grouped by TMDB area (Movies, TV, People, Search, ...)
 - Async only, `CancellationToken` on every call
-- One call = one request. No auto-pagination, no retry, no throttling: `AddTmdb` returns
+- One call = one request, with one exception: `V4Lists.CreateAsync` with `isPublic: false` follows
+  the create with an update, because TMDB accepts `public: false`, answers `success`, and creates a
+  public list regardless. Dropping a caller's privacy flag is a correctness gap, not thinness. See
+  issue #17.
+- No auto-pagination, no retry, no throttling: `AddTmdb` returns
   `IHttpClientBuilder` so the caller composes their own pipeline
   (`.AddStandardResilienceHandler()`). TMDB serves **pages 1–500 only** — past that it answers
   400/`status_code` 22 — while `total_pages` routinely claims far more (58,428 on

@@ -78,6 +78,9 @@ static class V4WriteCheck
             // --- read back, confirming the write landed --------------------------------------
             var afterAdd = await client.V4Lists.GetAsync(id, accessToken: userToken);
             check(afterAdd.Results is { Count: 3 }, "all three items should be on the list");
+            // TMDB ignores `public: false` on create; CreateAsync repairs it (issue #17). If this
+            // starts passing without the repair, the follow-up update can be deleted.
+            check(!afterAdd.Public, "a list created with isPublic: false should read back private");
             Console.WriteLine($"  read:      {afterAdd.Results?.Count} items, " +
                               $"name=\"{afterAdd.Name}\", public={afterAdd.Public}");
 

@@ -51,6 +51,13 @@ public interface IV4ListEndpoints
     Task<V4ListDetails> GetAsync(int listId, int? page = null, string? language = null,
         string? sortBy = null, string? accessToken = null, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Creates a list. <b>Costs two requests when <paramref name="isPublic"/> is false</b> — the
+    /// one exception to one call = one request. TMDB accepts <c>public: false</c> on create and
+    /// makes the list public anyway (observed 2026-08-12, issue #17), so privacy is applied by a
+    /// follow-up update. If that update fails the exception propagates and the list is left
+    /// created and public.
+    /// </summary>
     Task<V4CreateListResponse> CreateAsync(string accessToken, string name, string? description = null,
         bool isPublic = true, string language = "en", string? country = null, CancellationToken cancellationToken = default);
 
@@ -142,9 +149,10 @@ internal sealed class V4ListEndpoints(TmdbClient client) : IV4ListEndpoints
             .Add("language", language ?? client.DefaultLanguage)
             .Add("sort_by", sortBy), cancellationToken, accessToken);
 
-    public Task<V4CreateListResponse> CreateAsync(string accessToken, string name, string? description = null,
+    public async Task<V4CreateListResponse> CreateAsync(string accessToken, string name, string? description = null,
         bool isPublic = true, string language = "en", string? country = null, CancellationToken cancellationToken = default)
-        => client.PostAsync<V4CreateListResponse>("4/list", new QueryString(), new V4CreateListRequest
+    {
+        var created = await client.PostAsync<V4CreateListResponse>("4/list", new QueryString(), new V4CreateListRequest
         {
             Name = name,
             Description = description,
@@ -152,6 +160,17 @@ internal sealed class V4ListEndpoints(TmdbClient client) : IV4ListEndpoints
             Iso639_1 = language,
             Iso3166_1 = country,
         }, cancellationToken, accessToken);
+
+        // TMDB accepts `public: false` on create, reports success, and makes the list public
+        // anyway; only an update applies privacy (issue #17). Unconditional rather than
+        // read-back-first: the update is idempotent and costs what the extra read would, and it
+        // becomes a harmless no-op if TMDB ever honours the flag on create.
+        if (!isPublic && created.Id > 0)
+            await UpdateAsync(created.Id, accessToken,
+                new V4UpdateListRequest { Public = false }, cancellationToken);
+
+        return created;
+    }
 
     public Task<V4StatusResponse> UpdateAsync(int listId, string accessToken, V4UpdateListRequest update, CancellationToken cancellationToken = default)
         => client.PutAsync<V4StatusResponse>($"4/list/{listId}", new QueryString(), update, cancellationToken, accessToken);
