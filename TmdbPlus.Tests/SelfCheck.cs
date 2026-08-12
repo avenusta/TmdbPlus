@@ -18,8 +18,17 @@ static class SelfCheck
     static T Load<T>(string file)
         => JsonSerializer.Deserialize<T>(File.ReadAllText(Path.Combine(Fixtures, file)), Json)!;
 
-    static async Task Main()
+    static async Task Main(string[] args)
     {
+        // The v4 write check is opt-in: it mutates a real account and pauses for a browser
+        // approval, so it never runs as part of the ordinary check pass.
+        if (args.Contains("v4writes"))
+        {
+            await V4WriteCheck.RunAsync(Check);
+            Console.WriteLine("\nv4 write check passed.");
+            return;
+        }
+
         MovieDetailsBindsCoreFields();
         AppendBlocksBindFlat();
         WatchProvidersKeyBinds();
@@ -59,10 +68,10 @@ static class SelfCheck
         Check(m.Credits!.Cast is { Count: > 0 }, "cast should be populated");
 
         var crew = m.Credits.Crew!;
-        var mapped = crew.Count(c => c.Department.IsKnown);
+        var mapped = crew.Count(c => c.Department?.IsKnown == true);
         Check(mapped > 0, "some departments should map");
         // Raw text survives even when the value is unmapped -- the TmdbEnum<T> contract.
-        Check(crew.All(c => c.Department.Raw is not null), "raw wire text must be kept");
+        Check(crew.All(c => c.Department?.Raw is not null), "raw wire text must be kept");
         Console.WriteLine($"  appends:   {m.Credits.Cast!.Count} cast, {crew.Count} crew, {mapped} departments mapped");
 
         var images = Load<MovieDetails>("append_movie-details_images.json");
