@@ -1,0 +1,22 @@
+name: Publish to NuGet
+
+on:
+  push:
+    branches: [release]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Only the library: TmdbPlus.Tests runs against live TMDB fixtures in gitignored audit/.
+      - run: dotnet pack TmdbPlus/TmdbPlus.csproj -c Release -o out
+
+      # skip-duplicate: re-pushing an unbumped <Version> is a no-op, not a failed run.
+      - run: dotnet nuget push "out/*.nupkg" -s https://api.nuget.org/v3/index.json -k "${{ secrets.NUGET_API_KEY }}" --skip-duplicate

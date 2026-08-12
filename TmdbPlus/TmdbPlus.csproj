@@ -7,6 +7,22 @@
         <RootNamespace>TmdbPlus</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <Version>0.1.0</Version>
+        <Description>Strongly typed .NET wrapper for the TMDB API</Description>
+        <Authors>avenusta</Authors>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/avenusta/TmdbPlus</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/avenusta/TmdbPlus</RepositoryUrl>
+        <PackageTags>tmdb;movies;tv;api-client</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../README.md" Pack="true" PackagePath="/" />
+        <None Include="../LICENSE" Pack="true" PackagePath="/" />
+    </ItemGroup>
+
     <!--
       The nswag output is reference material, not code: an index of TMDB's 152 paths and
       parameter names to consult while hand-writing an endpoint. It is not compiled because its
