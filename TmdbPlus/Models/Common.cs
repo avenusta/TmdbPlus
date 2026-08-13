@@ -34,7 +34,7 @@ public class PagedResult<T> : IPagedResult<T>
 }
 
 /// <summary>A block shaped <c>{ "id": n, "results": [...] }</c>.</summary>
-public class ResultsOf<T>
+public class ResultsOf<T> : IResultsOf<T>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("results")] public IList<T>? Results { get; set; }

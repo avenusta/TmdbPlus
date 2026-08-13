@@ -8,7 +8,7 @@ namespace TmdbPlus.Models;
 // A nested collection is generic in its element type ONLY where that element is entity-like --
 // something a consumer would persist as its own row. IList<T> is not covariant and EF cannot map
 // an explicit interface implementation, so those would otherwise force a shadow property.
-// Block wrappers and envelopes stay concrete: a consumer stores the keywords, not the wrapper.
+// Envelope properties are generic in the envelope type via a non-generic marker (issue #18).
 //
 // Hand-maintained: keep in sync with the response classes in the matching .cs file.
 
@@ -28,11 +28,15 @@ public interface IAggregateCastMember<TRoles>
     IList<TRoles>? Roles { get; set; }
 }
 
-public interface IAggregateCredits<TCast, TCrew>
+public interface IAggregateCreditsBase
+{
+    int Id { get; set; }
+}
+
+public interface IAggregateCredits<TCast, TCrew> : IAggregateCreditsBase
     where TCast : IAggregateCastMember<AggregateRole>
     where TCrew : IAggregateCrewMember<AggregateJob>
 {
-    int Id { get; set; }
     IList<TCast>? Cast { get; set; }
     IList<TCrew>? Crew { get; set; }
 }
@@ -74,14 +78,16 @@ public interface IContentRating
     IList<string>? Descriptors { get; set; }
 }
 
-public interface IEpisodeCredits<TGuestStars>
+public interface IEpisodeCreditsBase : ICreditsBase;
+
+public interface IEpisodeCredits<TGuestStars> : IEpisodeCreditsBase
     where TGuestStars : ICastMember
 {
     IList<TGuestStars>? GuestStars { get; set; }
 }
 
 public interface IEpisodeGroup<TEpisodes>
-    where TEpisodes : ITvEpisodeDetails<CrewMember, CastMember, TvExternalIds>
+    where TEpisodes : ITvEpisodeDetailsBase
 {
     string? Id { get; set; }
     string? Name { get; set; }
@@ -192,10 +198,14 @@ public interface ITvExternalIds
     string? FreebaseId { get; set; }
 }
 
-public interface ITvKeywords<TResults>
-    where TResults : IKeyword
+public interface ITvKeywordsBase
 {
     int Id { get; set; }
+}
+
+public interface ITvKeywords<TResults> : ITvKeywordsBase
+    where TResults : IKeyword
+{
     IList<TResults>? Results { get; set; }
 }
 

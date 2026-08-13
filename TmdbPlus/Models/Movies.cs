@@ -5,11 +5,17 @@ namespace TmdbPlus.Models;
 
 // Nullability from audit/nullability_decisions.json, entry "/3/movie/{movie_id}".
 
-public interface IMovieDetails<TGenres, TProductionCompanies, TBelongsToCollection, TExternalIds>
+public interface IMovieDetails<TGenres, TProductionCompanies, TBelongsToCollection, TExternalIds,
+    TCredits, TImages, TVideos, TKeywords, TReleaseDates>
     where TGenres : IGenre
     where TProductionCompanies : IProductionCompany
     where TBelongsToCollection : ICollectionRef
     where TExternalIds : IMovieExternalIds
+    where TCredits : ICreditsBase
+    where TImages : IImagesBase
+    where TVideos : IResultsOfBase
+    where TKeywords : IMovieKeywordsBase
+    where TReleaseDates : IResultsOfBase
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -43,11 +49,11 @@ public interface IMovieDetails<TGenres, TProductionCompanies, TBelongsToCollecti
     IList<ProductionCountry>? ProductionCountries { get; set; }
     IList<SpokenLanguage>? SpokenLanguages { get; set; }
     TBelongsToCollection? BelongsToCollection { get; set; }
-    Credits? Credits { get; set; }
-    Images? Images { get; set; }
-    ResultsOf<Video>? Videos { get; set; }
-    MovieKeywords? Keywords { get; set; }
-    ResultsOf<CountryReleaseDates>? ReleaseDates { get; set; }
+    TCredits? Credits { get; set; }
+    TImages? Images { get; set; }
+    TVideos? Videos { get; set; }
+    TKeywords? Keywords { get; set; }
+    TReleaseDates? ReleaseDates { get; set; }
     MovieAlternativeTitles? AlternativeTitles { get; set; }
     TExternalIds? ExternalIds { get; set; }
     MovieTranslations? Translations { get; set; }
@@ -65,7 +71,8 @@ public interface IMovieDetails<TGenres, TProductionCompanies, TBelongsToCollecti
 /// type rather than under a nested <c>Appends</c> object -- STJ cannot bind parent-level keys
 /// into a nested object without a converter per type plus double deserialization.
 /// </summary>
-public class MovieDetails : IMovieDetails<Genre, ProductionCompany, CollectionRef, MovieExternalIds>
+public class MovieDetails : IMovieDetails<Genre, ProductionCompany, CollectionRef, MovieExternalIds,
+    Credits, Images, ResultsOf<Video>, MovieKeywords, ResultsOf<CountryReleaseDates>>
 {
     // --- core: always present ---
     [JsonPropertyName("id")] public int Id { get; set; }

@@ -42,8 +42,12 @@ internal static class PersonAppendExtensions
     }
 }
 
-public interface IPersonDetails<TExternalIds>
+public interface IPersonDetails<TExternalIds, TCombinedCredits, TMovieCredits, TTvCredits, TImages>
     where TExternalIds : IPersonExternalIds
+    where TCombinedCredits : ICombinedCreditsBase
+    where TMovieCredits : IPersonMovieCreditsBase
+    where TTvCredits : IPersonTvCreditsBase
+    where TImages : IPersonImagesBase
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -61,17 +65,17 @@ public interface IPersonDetails<TExternalIds>
     IList<string>? AlsoKnownAs { get; set; }
 
     // Nested collections and append blocks: null unless the call requested them.
-    CombinedCredits? CombinedCredits { get; set; }
-    PersonMovieCredits? MovieCredits { get; set; }
-    PersonTvCredits? TvCredits { get; set; }
+    TCombinedCredits? CombinedCredits { get; set; }
+    TMovieCredits? MovieCredits { get; set; }
+    TTvCredits? TvCredits { get; set; }
     TExternalIds? ExternalIds { get; set; }
-    PersonImages? Images { get; set; }
+    TImages? Images { get; set; }
     PagedResult<TaggedImage>? TaggedImages { get; set; }
     PersonTranslations? Translations { get; set; }
     ChangesResult? Changes { get; set; }
 }
 
-public class PersonDetails : IPersonDetails<PersonExternalIds>
+public class PersonDetails : IPersonDetails<PersonExternalIds, CombinedCredits, PersonMovieCredits, PersonTvCredits, PersonImages>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool Adult { get; set; }
@@ -250,7 +254,7 @@ public class PersonTvCredits : IPersonTvCredits<CombinedCastCredit, CombinedCrew
 // Person-specific blocks
 // ---------------------------------------------------------------------------
 
-public class PersonImages : IPersonImages
+public class PersonImages : IPersonImages<ImageInfo>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
 

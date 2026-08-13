@@ -8,7 +8,7 @@ namespace TmdbPlus.Models;
 // A nested collection is generic in its element type ONLY where that element is entity-like --
 // something a consumer would persist as its own row. IList<T> is not covariant and EF cannot map
 // an explicit interface implementation, so those would otherwise force a shadow property.
-// Block wrappers and envelopes stay concrete: a consumer stores the keywords, not the wrapper.
+// Envelope properties are generic in the envelope type via a non-generic marker (issue #18).
 //
 // Hand-maintained: keep in sync with the response classes in the matching .cs file.
 
@@ -40,11 +40,15 @@ public interface ICombinedCastCredit
     DateOnly? FirstAirDate { get; set; }
 }
 
-public interface ICombinedCredits<TCast, TCrew>
+public interface ICombinedCreditsBase
+{
+    int Id { get; set; }
+}
+
+public interface ICombinedCredits<TCast, TCrew> : ICombinedCreditsBase
     where TCast : ICombinedCastCredit
     where TCrew : ICombinedCrewCredit
 {
-    int Id { get; set; }
     IList<TCast>? Cast { get; set; }
     IList<TCrew>? Crew { get; set; }
 }
@@ -92,17 +96,25 @@ public interface IPersonExternalIds
     int? TvrageId { get; set; }
 }
 
-public interface IPersonImages
+public interface IPersonImagesBase
 {
     int Id { get; set; }
-    IList<ImageInfo>? Profiles { get; set; }
 }
 
-public interface IPersonMovieCredits<TCast, TCrew>
+public interface IPersonImages<TImage> : IPersonImagesBase where TImage : IImageInfo
+{
+    IList<TImage>? Profiles { get; set; }
+}
+
+public interface IPersonMovieCreditsBase
+{
+    int Id { get; set; }
+}
+
+public interface IPersonMovieCredits<TCast, TCrew> : IPersonMovieCreditsBase
     where TCast : ICombinedCastCredit
     where TCrew : ICombinedCrewCredit
 {
-    int Id { get; set; }
     IList<TCast>? Cast { get; set; }
     IList<TCrew>? Crew { get; set; }
 }
@@ -141,11 +153,15 @@ public interface IPersonTranslations
     IList<PersonTranslation>? Translations { get; set; }
 }
 
-public interface IPersonTvCredits<TCast, TCrew>
+public interface IPersonTvCreditsBase
+{
+    int Id { get; set; }
+}
+
+public interface IPersonTvCredits<TCast, TCrew> : IPersonTvCreditsBase
     where TCast : ICombinedCastCredit
     where TCrew : ICombinedCrewCredit
 {
-    int Id { get; set; }
     IList<TCast>? Cast { get; set; }
     IList<TCrew>? Crew { get; set; }
 }

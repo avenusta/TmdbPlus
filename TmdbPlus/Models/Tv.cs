@@ -9,7 +9,10 @@ namespace TmdbPlus.Models;
 // Series
 // ---------------------------------------------------------------------------
 
-public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCompanies, TSeasons, TLastEpisodeToAir, TNextEpisodeToAir, TExternalIds>
+public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCompanies, TSeasons,
+    TLastEpisodeToAir, TNextEpisodeToAir, TExternalIds,
+    TCredits, TAggregateCredits, TImages, TVideos, TKeywords,
+    TContentRatings, TEpisodeGroups, TScreenedTheatrically>
     where TGenres : IGenre
     where TCreatedBy : ISeriesCreator
     where TNetworks : INetwork
@@ -18,6 +21,14 @@ public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCom
     where TLastEpisodeToAir : IEpisodeSummary
     where TNextEpisodeToAir : IEpisodeSummary
     where TExternalIds : ITvExternalIds
+    where TCredits : ICreditsBase
+    where TAggregateCredits : IAggregateCreditsBase
+    where TImages : IImagesBase
+    where TVideos : IResultsOfBase
+    where TKeywords : ITvKeywordsBase
+    where TContentRatings : IResultsOfBase
+    where TEpisodeGroups : IResultsOfBase
+    where TScreenedTheatrically : IResultsOfBase
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -55,17 +66,17 @@ public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCom
     IList<TSeasons>? Seasons { get; set; }
     TLastEpisodeToAir? LastEpisodeToAir { get; set; }
     TNextEpisodeToAir? NextEpisodeToAir { get; set; }
-    Credits? Credits { get; set; }
-    AggregateCredits? AggregateCredits { get; set; }
-    Images? Images { get; set; }
-    ResultsOf<Video>? Videos { get; set; }
-    TvKeywords? Keywords { get; set; }
+    TCredits? Credits { get; set; }
+    TAggregateCredits? AggregateCredits { get; set; }
+    TImages? Images { get; set; }
+    TVideos? Videos { get; set; }
+    TKeywords? Keywords { get; set; }
     TExternalIds? ExternalIds { get; set; }
     TvAlternativeTitles? AlternativeTitles { get; set; }
     TvTranslations? Translations { get; set; }
-    ResultsOf<ContentRating>? ContentRatings { get; set; }
-    ResultsOf<EpisodeGroupSummary>? EpisodeGroups { get; set; }
-    ResultsOf<ScreenedTheatrically>? ScreenedTheatrically { get; set; }
+    TContentRatings? ContentRatings { get; set; }
+    TEpisodeGroups? EpisodeGroups { get; set; }
+    TScreenedTheatrically? ScreenedTheatrically { get; set; }
     ChangesResult? Changes { get; set; }
     PagedResult<TvSeriesSummary>? Recommendations { get; set; }
     PagedResult<TvSeriesSummary>? Similar { get; set; }
@@ -78,7 +89,10 @@ public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCom
 /// A TV series, with one nullable property per append block. A block is <c>null</c> unless it
 /// was requested (issue #3).
 /// </summary>
-public class TvSeriesDetails : ITvSeriesDetails<Genre, SeriesCreator, Network, ProductionCompany, SeasonSummary, EpisodeSummary, EpisodeSummary, TvExternalIds>
+public class TvSeriesDetails : ITvSeriesDetails<Genre, SeriesCreator, Network, ProductionCompany, SeasonSummary,
+    EpisodeSummary, EpisodeSummary, TvExternalIds,
+    Credits, AggregateCredits, Images, ResultsOf<Video>, TvKeywords,
+    ResultsOf<ContentRating>, ResultsOf<EpisodeGroupSummary>, ResultsOf<ScreenedTheatrically>>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("adult")] public bool Adult { get; set; }
@@ -227,10 +241,15 @@ public class SeasonSummary : ISeasonSummary
     public DateOnly? AirDate { get; set; }
 }
 
-public interface ITvSeasonDetails<TEpisodes, TNetworks, TExternalIds>
-    where TEpisodes : ITvEpisodeDetails<CrewMember, CastMember, TvExternalIds>
+public interface ITvSeasonDetails<TEpisodes, TNetworks, TExternalIds,
+    TCredits, TAggregateCredits, TImages, TVideos>
+    where TEpisodes : ITvEpisodeDetailsBase
     where TNetworks : INetwork
     where TExternalIds : ITvExternalIds
+    where TCredits : ICreditsBase
+    where TAggregateCredits : IAggregateCreditsBase
+    where TImages : IImagesBase
+    where TVideos : IResultsOfBase
 {
     int Id { get; set; }
     string? Name { get; set; }
@@ -244,10 +263,10 @@ public interface ITvSeasonDetails<TEpisodes, TNetworks, TExternalIds>
     string? InternalId { get; set; }
     IList<TEpisodes>? Episodes { get; set; }
     IList<TNetworks>? Networks { get; set; }
-    Credits? Credits { get; set; }
-    AggregateCredits? AggregateCredits { get; set; }
-    Images? Images { get; set; }
-    ResultsOf<Video>? Videos { get; set; }
+    TCredits? Credits { get; set; }
+    TAggregateCredits? AggregateCredits { get; set; }
+    TImages? Images { get; set; }
+    TVideos? Videos { get; set; }
     TExternalIds? ExternalIds { get; set; }
     TvTranslations? Translations { get; set; }
     ResultsMap<CountryWatchProviders>? WatchProviders { get; set; }
@@ -257,7 +276,8 @@ public interface ITvSeasonDetails<TEpisodes, TNetworks, TExternalIds>
 /// A season. Note <c>changes</c> is NOT appendable here — TMDB rejects it, and the season-level
 /// changes endpoint is keyed by season id rather than series/season number (issue #6).
 /// </summary>
-public class TvSeasonDetails : ITvSeasonDetails<TvEpisodeDetails, Network, TvExternalIds>
+public class TvSeasonDetails : ITvSeasonDetails<TvEpisodeDetails, Network, TvExternalIds,
+    Credits, AggregateCredits, Images, ResultsOf<Video>>
 {
     /// <summary>TMDB returns this alongside <c>id</c>; it is the internal object id.</summary>
     [JsonPropertyName("_id")] public string? InternalId { get; set; }
@@ -313,10 +333,7 @@ public class EpisodeSummary : IEpisodeSummary
     public DateOnly? AirDate { get; set; }
 }
 
-public interface ITvEpisodeDetails<TCrew, TGuestStars, TExternalIds>
-    where TCrew : ICrewMember
-    where TGuestStars : ICastMember
-    where TExternalIds : ITvExternalIds
+public interface ITvEpisodeDetailsBase
 {
     int Id { get; set; }
     string? Name { get; set; }
@@ -329,21 +346,30 @@ public interface ITvEpisodeDetails<TCrew, TGuestStars, TExternalIds>
     int VoteCount { get; set; }
     TmdbEnum<EpisodeType>? EpisodeType { get; set; }
     DateOnly? AirDate { get; set; }
-
-    // Nested collections and append blocks: null unless the call requested them.
     string? ProductionCode { get; set; }
     int ShowId { get; set; }
+}
+
+public interface ITvEpisodeDetails<TCrew, TGuestStars, TExternalIds, TCredits, TImages, TVideos>
+    : ITvEpisodeDetailsBase
+    where TCrew : ICrewMember
+    where TGuestStars : ICastMember
+    where TExternalIds : ITvExternalIds
+    where TCredits : IEpisodeCreditsBase
+    where TImages : IImagesBase
+    where TVideos : IResultsOfBase
+{
     IList<TCrew>? Crew { get; set; }
     IList<TGuestStars>? GuestStars { get; set; }
-    EpisodeCredits? Credits { get; set; }
-    Images? Images { get; set; }
-    ResultsOf<Video>? Videos { get; set; }
+    TCredits? Credits { get; set; }
+    TImages? Images { get; set; }
+    TVideos? Videos { get; set; }
     TExternalIds? ExternalIds { get; set; }
     TvTranslations? Translations { get; set; }
 }
 
 /// <summary>An episode. <c>changes</c> is not appendable here either (issue #6).</summary>
-public class TvEpisodeDetails : ITvEpisodeDetails<CrewMember, CastMember, TvExternalIds>
+public class TvEpisodeDetails : ITvEpisodeDetails<CrewMember, CastMember, TvExternalIds, EpisodeCredits, Images, ResultsOf<Video>>
 {
     [JsonPropertyName("id")] public int Id { get; set; }
     [JsonPropertyName("name")] public string? Name { get; set; }

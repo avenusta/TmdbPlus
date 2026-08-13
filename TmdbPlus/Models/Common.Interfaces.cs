@@ -16,6 +16,16 @@ public interface IPagedResult<T>
     int TotalResults { get; set; }
 }
 
+public interface IResultsOfBase
+{
+    int Id { get; set; }
+}
+
+public interface IResultsOf<T> : IResultsOfBase
+{
+    IList<T>? Results { get; set; }
+}
+
 public interface IGenre
 {
     int Id { get; set; }
@@ -69,9 +79,13 @@ public interface IImageInfo
     int VoteCount { get; set; }
 }
 
-public interface IImages<TImage> where TImage : IImageInfo
+public interface IImagesBase
 {
     int Id { get; set; }
+}
+
+public interface IImages<TImage> : IImagesBase where TImage : IImageInfo
+{
     IList<TImage>? Backdrops { get; set; }
     IList<TImage>? Logos { get; set; }
     IList<TImage>? Posters { get; set; }
@@ -113,11 +127,15 @@ public interface ICrewMember
     double Popularity { get; set; }
 }
 
-public interface ICredits<TCast, TCrew>
+public interface ICreditsBase
+{
+    int Id { get; set; }
+}
+
+public interface ICredits<TCast, TCrew> : ICreditsBase
     where TCast : ICastMember
     where TCrew : ICrewMember
 {
-    int Id { get; set; }
     IList<TCast>? Cast { get; set; }
     IList<TCrew>? Crew { get; set; }
 }

@@ -8,7 +8,7 @@ namespace TmdbPlus.Models;
 // A nested collection is generic in its element type ONLY where that element is entity-like --
 // something a consumer would persist as its own row. IList<T> is not covariant and EF cannot map
 // an explicit interface implementation, so those would otherwise force a shadow property.
-// Block wrappers and envelopes stay concrete: a consumer stores the keywords, not the wrapper.
+// Envelope properties are generic in the envelope type via a non-generic marker (issue #18).
 //
 // Hand-maintained: keep in sync with the response classes in the matching .cs file.
 
@@ -56,10 +56,14 @@ public interface IMovieExternalIds
     string? TwitterId { get; set; }
 }
 
-public interface IMovieKeywords<TKeywords>
-    where TKeywords : IKeyword
+public interface IMovieKeywordsBase
 {
     int Id { get; set; }
+}
+
+public interface IMovieKeywords<TKeywords> : IMovieKeywordsBase
+    where TKeywords : IKeyword
+{
     IList<TKeywords>? Keywords { get; set; }
 }
 
