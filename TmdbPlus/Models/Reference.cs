@@ -188,14 +188,12 @@ public class CreditDetails : ICreditDetails<PersonSummary, CreditMedia>
     [JsonPropertyName("job")] public string? Job { get; set; }
 
     [JsonPropertyName("department")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<CreditDepartment>))]
-    public TmdbEnum<CreditDepartment>? Department { get; set; }
+    public string? Department { get; set; }
 
     [JsonPropertyName("credit_type")] public string? CreditType { get; set; }
 
     [JsonPropertyName("media_type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<MediaType>))]
-    public TmdbEnum<MediaType> MediaType { get; set; }
+    public string? MediaType { get; set; }
 
     [JsonPropertyName("person")] public PersonSummary? Person { get; set; }
     [JsonPropertyName("media")] public CreditMedia? Media { get; set; }
@@ -242,8 +240,7 @@ public class ReviewDetails : IReviewDetails
     [JsonPropertyName("media_title")] public string? MediaTitle { get; set; }
 
     [JsonPropertyName("media_type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<MediaType>))]
-    public TmdbEnum<MediaType> MediaType { get; set; }
+    public string? MediaType { get; set; }
 
     [JsonPropertyName("author_details")] public ReviewAuthor? AuthorDetails { get; set; }
 

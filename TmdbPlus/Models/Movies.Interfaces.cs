@@ -77,7 +77,7 @@ public interface IReleaseDateEntry
 {
     string? Certification { get; set; }
     DateTimeOffset? ReleaseDate { get; set; }
-    TmdbEnum<ReleaseType> Type { get; set; }
+    int? Type { get; set; }
     string? Note { get; set; }
     string? Iso639_1 { get; set; }
     IList<string>? Descriptors { get; set; }

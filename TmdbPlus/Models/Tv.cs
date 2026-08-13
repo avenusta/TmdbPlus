@@ -49,7 +49,7 @@ public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCom
     string? BackdropPath { get; set; }
     string? PosterPath { get; set; }
     string? Type { get; set; }
-    TmdbEnum<MediaStatus>? Status { get; set; }
+    string? Status { get; set; }
     DateOnly? FirstAirDate { get; set; }
     DateOnly? LastAirDate { get; set; }
     IList<int>? EpisodeRunTime { get; set; }
@@ -117,8 +117,7 @@ public class TvSeriesDetails : ITvSeriesDetails<Genre, SeriesCreator, Network, P
     [JsonPropertyName("type")] public string? Type { get; set; }
 
     [JsonPropertyName("status")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<MediaStatus>))]
-    public TmdbEnum<MediaStatus>? Status { get; set; }
+    public string? Status { get; set; }
 
     [JsonPropertyName("first_air_date")]
     [JsonConverter(typeof(TmdbDateOnlyConverter))]
@@ -325,8 +324,7 @@ public class EpisodeSummary : IEpisodeSummary
     [JsonPropertyName("vote_count")] public int VoteCount { get; set; }
 
     [JsonPropertyName("episode_type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<EpisodeType>))]
-    public TmdbEnum<EpisodeType>? EpisodeType { get; set; }
+    public string? EpisodeType { get; set; }
 
     [JsonPropertyName("air_date")]
     [JsonConverter(typeof(TmdbDateOnlyConverter))]
@@ -344,7 +342,7 @@ public interface ITvEpisodeDetailsBase
     int? Runtime { get; set; }
     double VoteAverage { get; set; }
     int VoteCount { get; set; }
-    TmdbEnum<EpisodeType>? EpisodeType { get; set; }
+    string? EpisodeType { get; set; }
     DateOnly? AirDate { get; set; }
     string? ProductionCode { get; set; }
     int ShowId { get; set; }
@@ -384,8 +382,7 @@ public class TvEpisodeDetails : ITvEpisodeDetails<CrewMember, CastMember, TvExte
     [JsonPropertyName("vote_count")] public int VoteCount { get; set; }
 
     [JsonPropertyName("episode_type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<EpisodeType>))]
-    public TmdbEnum<EpisodeType>? EpisodeType { get; set; }
+    public string? EpisodeType { get; set; }
 
     [JsonPropertyName("air_date")]
     [JsonConverter(typeof(TmdbDateOnlyConverter))]
@@ -458,8 +455,7 @@ public class AggregateCrewMember : IAggregateCrewMember<AggregateJob>
     [JsonPropertyName("total_episode_count")] public int TotalEpisodeCount { get; set; }
 
     [JsonPropertyName("department")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<CreditDepartment>))]
-    public TmdbEnum<CreditDepartment>? Department { get; set; }
+    public string? Department { get; set; }
 
     [JsonPropertyName("jobs")] public IList<AggregateJob>? Jobs { get; set; }
 }

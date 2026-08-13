@@ -34,7 +34,7 @@ public interface IMovieDetails<TGenres, TProductionCompanies, TBelongsToCollecti
     string? OriginalLanguage { get; set; }
     string? Overview { get; set; }
     string? Tagline { get; set; }
-    TmdbEnum<MediaStatus>? Status { get; set; }
+    string? Status { get; set; }
     string? Homepage { get; set; }
     string? ImdbId { get; set; }
     string? BackdropPath { get; set; }
@@ -98,8 +98,7 @@ public class MovieDetails : IMovieDetails<Genre, ProductionCompany, CollectionRe
     [JsonPropertyName("runtime")] public int? Runtime { get; set; }
 
     [JsonPropertyName("status")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<MediaStatus>))]
-    public TmdbEnum<MediaStatus>? Status { get; set; }
+    public string? Status { get; set; }
 
     [JsonPropertyName("release_date")]
     [JsonConverter(typeof(TmdbDateOnlyConverter))]
@@ -246,8 +245,7 @@ public class ReleaseDateEntry : IReleaseDateEntry
     public DateTimeOffset? ReleaseDate { get; set; }
 
     [JsonPropertyName("type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<ReleaseType>))]
-    public TmdbEnum<ReleaseType> Type { get; set; }
+    public int? Type { get; set; }
 
     [JsonPropertyName("note")] public string? Note { get; set; }
     [JsonPropertyName("iso_639_1")] public string? Iso639_1 { get; set; }

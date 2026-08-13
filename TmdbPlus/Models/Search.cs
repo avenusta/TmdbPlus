@@ -16,8 +16,7 @@ public class MultiSearchResult : IMultiSearchResult<CombinedCastCredit>
     [JsonPropertyName("popularity")] public double Popularity { get; set; }
 
     [JsonPropertyName("media_type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<MediaType>))]
-    public TmdbEnum<MediaType> MediaType { get; set; }
+    public string? MediaType { get; set; }
 
     // Movie and TV shared.
     [JsonPropertyName("overview")] public string? Overview { get; set; }

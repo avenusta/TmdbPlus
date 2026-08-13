@@ -139,8 +139,7 @@ public class CrewMember : ICrewMember
     /// lost. Implicitly converts to <see cref="CreditDepartment"/> for switching and comparison.
     /// </summary>
     [JsonPropertyName("department")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<CreditDepartment>))]
-    public TmdbEnum<CreditDepartment>? Department { get; set; }
+    public string? Department { get; set; }
 
     [JsonPropertyName("credit_id")] public string? CreditId { get; set; }
     [JsonPropertyName("known_for_department")] public string? KnownForDepartment { get; set; }
@@ -164,12 +163,10 @@ public class Video : IVideo
     [JsonPropertyName("name")] public string? Name { get; set; }
 
     [JsonPropertyName("site")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<VideoSite>))]
-    public TmdbEnum<VideoSite> Site { get; set; }
+    public string? Site { get; set; }
 
     [JsonPropertyName("type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<VideoType>))]
-    public TmdbEnum<VideoType> Type { get; set; }
+    public string? Type { get; set; }
 
     [JsonPropertyName("size")] public int Size { get; set; }
     [JsonPropertyName("official")] public bool Official { get; set; }
@@ -246,8 +243,7 @@ public class ChangeItem : IChangeItem
     [JsonPropertyName("id")] public string? Id { get; set; }
 
     [JsonPropertyName("action")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<ChangeAction>))]
-    public TmdbEnum<ChangeAction> Action { get; set; }
+    public string? Action { get; set; }
 
     [JsonPropertyName("time")]
     [JsonConverter(typeof(TmdbDateTimeOffsetConverter))]
