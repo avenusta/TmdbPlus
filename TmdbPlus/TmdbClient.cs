@@ -90,9 +90,16 @@ public sealed class TmdbClient : ITmdbClient
     /// Shared serializer options. Endpoints bind JSON straight into the public types, so the
     /// converters that have to apply everywhere live here rather than on every property.
     /// </summary>
+    /// <remarks>
+    /// The naming policy is load-bearing: <c>[JsonPropertyName]</c> does not travel through an
+    /// interface to an implementing type, so a consumer's own entity satisfying the contract binds
+    /// nothing without it — silently, no exception. Six wire names cannot be derived and keep their
+    /// attributes, which take precedence. <c>SnakeCaseLower</c> does <b>not</b> break at a digit
+    /// boundary (<c>Iso3166_1</c> → <c>iso3166_1</c>), so digit-bearing names always need one.
+    /// </remarks>
     internal static readonly JsonSerializerOptions Json = new()
     {
-        PropertyNamingPolicy = null,
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
         Converters =
         {
