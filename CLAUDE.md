@@ -16,6 +16,16 @@ Create a client with a read access token, call endpoints, get typed results back
 - Responses are mutable `class`es (`{ get; set; }`) with `[JsonPropertyName]` for TMDB's snake_case.
   Not records: init-only properties break EF Core change tracking, and `with` yields a second
   instance with the same key. See issue #4.
+- Wire names come from `PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower` on the shared
+  options, **not** from the attributes. `[JsonPropertyName]` does not travel through an interface
+  to an implementing type, and STJ does not read it from interface declarations either — so a
+  consumer's own entity satisfying a contract binds *nothing* without the policy, silently and
+  with no exception. The attributes on the library's own types stay: they take precedence, and
+  they document each wire name.
+  **`SnakeCaseLower` does not break at a digit boundary** — `Iso3166_1` → `iso3166_1`, not
+  `iso_3166_1` — so any property with a digit in its name needs an explicit attribute. Six do:
+  `Iso3166_1`, `Iso639_1`, `InternalId` (`_id`), `WatchProviders` (`watch/providers`), and the
+  deliberate renames `Value` (`certification`) and `Token` (`request_token`).
 - Every response type implements a matching `I`-prefixed interface with **settable** members —
   a schema contract consuming apps implement on their own EF entities, so mapping is written
   once per interface rather than once per type. Interfaces never dictate keys or FKs.

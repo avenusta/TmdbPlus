@@ -39,6 +39,8 @@ static class SelfCheck
         QueryStringSkipsAbsentValues();
         AppendFlagsProduceWireNames();
         SessionsCarryTheRightParameter();
+        BareInterfaceImplementerBinds();
+        NonDerivableWireNamesStillBind();
 
         await LiveCheck.RunAsync(Check);
 
@@ -179,4 +181,92 @@ static class SelfCheck
         Check(guest.GuestSessionId == "g456" && guest.UserSessionId is null, "guest session");
         Console.WriteLine($"  sessions:  user -> session_id, guest -> guest_session_id");
     }
+
+    /// <summary>
+    /// The contract's whole point: a consumer's own entity implements the interface and binds. It
+    /// carries no <c>[JsonPropertyName]</c> — attributes do not cross an interface — so this fails
+    /// on every multi-word property unless the shared options set a naming policy. Every other check
+    /// here uses the library's own attributed classes and passes either way, which is exactly how
+    /// this went unnoticed.
+    /// </summary>
+    static void BareInterfaceImplementerBinds()
+    {
+        var season = Load<BareSeason>("tv-season-details_0.json");
+        Check(season.Episodes is { Count: > 0 }, "episodes must bind on a bare implementer");
+        var episodes = season.Episodes!;
+
+        // The reported symptom: ten episodes, all EpisodeNumber = 0, no exception.
+        Check(episodes.All(e => e.EpisodeNumber != 0), "episode_number must bind on a bare implementer");
+        Check(episodes.Any(e => e.AirDate is not null), "air_date must bind on a bare implementer");
+        Check(episodes.Any(e => e.EpisodeType is not null), "episode_type must bind on a bare implementer");
+        // Single-word names bind by exact match, not by the policy -- assert them so a future
+        // change to case handling cannot quietly take them away.
+        Check(episodes.All(e => !string.IsNullOrEmpty(e.Name)), "name must bind on a bare implementer");
+
+        var first = episodes[0];
+        Console.WriteLine($"  contract:  bare implementer bound {episodes.Count} episodes, "
+            + $"first = E{first.EpisodeNumber} '{first.Name}' {first.AirDate} ({first.EpisodeType})");
+    }
+
+    /// <summary>
+    /// The six wire names the naming policy cannot derive. Their <c>[JsonPropertyName]</c> must win
+    /// over the policy, so these are the properties that break if the "redundant" attributes are
+    /// ever bulk-deleted — the policy would silently rename them and bind nothing.
+    /// </summary>
+    static void NonDerivableWireNamesStillBind()
+    {
+        // Iso3166_1 / Iso639_1: SnakeCaseLower emits iso3166_1, missing the underscore TMDB sends.
+        var releases = Load<MovieDetails>("append_movie-details_release_dates.json").ReleaseDates!;
+        var group = releases.Results!.First(g => !string.IsNullOrEmpty(g.Iso3166_1));
+        Check(group.Iso3166_1!.Length == 2, $"iso_3166_1 must bind, got '{group.Iso3166_1}'");
+
+        var translations = Load<MovieDetails>("append_movie-details_translations.json").Translations!;
+        var t = translations.Translations!.First();
+        Check(!string.IsNullOrEmpty(t.Iso639_1), "iso_639_1 must bind");
+        Check(!string.IsNullOrEmpty(t.Iso3166_1), "iso_3166_1 must bind on a translation");
+
+        // InternalId: leading underscore, which no policy produces.
+        var season = Load<TvSeasonDetails>("tv-season-details_0.json");
+        Check(!string.IsNullOrEmpty(season.InternalId), "_id must bind to InternalId");
+
+        // WatchProviders: contains '/', not a legal identifier.
+        var wp = Load<MovieDetails>("append_movie-details_watch_providers.json");
+        Check(wp.WatchProviders?.Results is { Count: > 0 }, "watch/providers must bind");
+
+        // Value: a deliberate rename away from the wire name.
+        var certs = Load<CertificationsResponse>("certification-movie-list_0.json");
+        var us = certs.Certifications!["US"];
+        Check(us.Any(c => !string.IsNullOrEmpty(c.Value)), "certification must bind to Value");
+
+        // Token: the other deliberate rename.
+        var token = Load<RequestToken>("authentication-create-request-token_0.json");
+        Check(!string.IsNullOrEmpty(token.Token), "request_token must bind to Token");
+
+        Console.WriteLine($"  exceptions: iso_3166_1={group.Iso3166_1}, iso_639_1={t.Iso639_1}, "
+            + $"_id={season.InternalId}, watch/providers={wp.WatchProviders!.Results!.Count} regions, "
+            + $"certification={us.First(c => !string.IsNullOrEmpty(c.Value)).Value}, request_token ok");
+    }
+}
+
+/// <summary>Stands in for a consumer's EF entity: satisfies the contract, declares no attributes.</summary>
+file sealed class BareEpisode : ITvEpisodeDetailsBase
+{
+    public int Id { get; set; }
+    public string? Name { get; set; }
+    public string? Overview { get; set; }
+    public string? StillPath { get; set; }
+    public int EpisodeNumber { get; set; }
+    public int SeasonNumber { get; set; }
+    public int? Runtime { get; set; }
+    public double VoteAverage { get; set; }
+    public int VoteCount { get; set; }
+    public string? EpisodeType { get; set; }
+    public DateOnly? AirDate { get; set; }
+    public string? ProductionCode { get; set; }
+    public int ShowId { get; set; }
+}
+
+file sealed class BareSeason
+{
+    public IList<BareEpisode>? Episodes { get; set; }
 }
