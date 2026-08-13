@@ -48,6 +48,7 @@ Appendable endpoints:
 
 ## Good to know
 
+- Every call has a generic twin: `tmdb.Tv.GetAsync<TmdbSeriesDetails>(1396, …)` deserializes into any class implementing `ITvSeriesDetails<…>`
 - **Paging** - TMDB only serves pages 1–500; past that it 400s with `status_code` 22
 - **Retry / throttling** - add `.AddStandardResilienceHandler()`. TMDB's limit is ~40 req/s and "could change at any time"
 - **Rate limits** - ~50 req/s and 20 connections per IP
