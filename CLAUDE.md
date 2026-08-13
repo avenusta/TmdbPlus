@@ -33,6 +33,15 @@ Create a client with a read access token, call endpoints, get typed results back
   (`ICredits<TCast> where TCast : ICastMember`). `IList<T>` is not covariant and EF cannot map
   an explicit interface implementation, so a non-generic `IList<IElement>` would force every
   consumer into copying shadow properties.
+- Every entity-returning call has an **unconstrained generic twin** — `GetAsync<T>(…)` beside
+  `GetAsync(…)` — so a consumer deserializes straight into its own EF entity instead of mapping
+  off the library's type. Element-generic, not envelope-generic: `Task<PagedResult<T>>`, so the
+  library keeps owning `page`/`total_results`. Unconstrained because `where T : ITvSeriesDetails`
+  cannot be written (generic in 16 parameters; closing them pins the library's own types — the
+  CS0311 bug of issue #18), and a non-generic marker to constrain to is leaky anyway:
+  `GetAsync<ITvSeriesDetailsBase>` satisfies it and still throws at runtime, since STJ cannot
+  instantiate an interface. No twin where a `T` buys nothing: the 14 `TmdbStatusResponse` writes,
+  `IList<string>`, and `V4Lists.CreateAsync` (its body reads `created.Id`). 157 twins.
 - Nullability comes from observed API responses, never from TMDB's OpenAPI spec (it declares
   nothing nullable). No prior + no observed null → nullable. See `audit/`.
 - Endpoints are hand-written: build the URL, deserialize straight into the public type, ~4 lines.

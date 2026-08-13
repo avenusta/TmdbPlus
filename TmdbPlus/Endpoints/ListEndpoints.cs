@@ -10,11 +10,18 @@ namespace TmdbPlus.Endpoints;
 public interface IListEndpoints
 {
     Task<ListDetails> GetAsync(int listId, string? language = null, int? page = null, CancellationToken cancellationToken = default);
+    /// <inheritdoc cref="GetAsync"/>
+    Task<T> GetAsync<T>(int listId, string? language = null, int? page = null, CancellationToken cancellationToken = default);
 
     /// <summary>Whether a movie is already on the list.</summary>
     Task<ListItemStatus> GetItemStatusAsync(int listId, int movieId, string? language = null, CancellationToken cancellationToken = default);
+    /// <inheritdoc cref="GetItemStatusAsync"/>
+    Task<T> GetItemStatusAsync<T>(int listId, int movieId, string? language = null, CancellationToken cancellationToken = default);
 
     Task<CreateListResponse> CreateAsync(UserSession session, string name, string? description = null,
+        string language = "en", CancellationToken cancellationToken = default);
+    /// <inheritdoc cref="CreateAsync"/>
+    Task<T> CreateAsync<T>(UserSession session, string name, string? description = null,
         string language = "en", CancellationToken cancellationToken = default);
 
     Task<TmdbStatusResponse> AddItemAsync(int listId, UserSession session, int movieId, CancellationToken cancellationToken = default);
@@ -31,13 +38,25 @@ internal sealed class ListEndpoints(TmdbClient client) : IListEndpoints
     public Task<ListDetails> GetAsync(int listId, string? language = null, int? page = null, CancellationToken cancellationToken = default)
         => client.GetAsync<ListDetails>($"3/list/{listId}", client.Page(language, page), cancellationToken);
 
+    public Task<T> GetAsync<T>(int listId, string? language = null, int? page = null, CancellationToken cancellationToken = default)
+        => client.GetAsync<T>($"3/list/{listId}", client.Page(language, page), cancellationToken);
+
     public Task<ListItemStatus> GetItemStatusAsync(int listId, int movieId, string? language = null, CancellationToken cancellationToken = default)
         => client.GetAsync<ListItemStatus>($"3/list/{listId}/item_status", client.Language(language)
+            .Add("movie_id", movieId), cancellationToken);
+
+    public Task<T> GetItemStatusAsync<T>(int listId, int movieId, string? language = null, CancellationToken cancellationToken = default)
+        => client.GetAsync<T>($"3/list/{listId}/item_status", client.Language(language)
             .Add("movie_id", movieId), cancellationToken);
 
     public Task<CreateListResponse> CreateAsync(UserSession session, string name, string? description = null,
         string language = "en", CancellationToken cancellationToken = default)
         => client.PostAsync<CreateListResponse>("3/list", Session(session),
+            new CreateListRequest { Name = name, Description = description, Language = language }, cancellationToken);
+
+    public Task<T> CreateAsync<T>(UserSession session, string name, string? description = null,
+        string language = "en", CancellationToken cancellationToken = default)
+        => client.PostAsync<T>("3/list", Session(session),
             new CreateListRequest { Name = name, Description = description, Language = language }, cancellationToken);
 
     public Task<TmdbStatusResponse> AddItemAsync(int listId, UserSession session, int movieId, CancellationToken cancellationToken = default)
