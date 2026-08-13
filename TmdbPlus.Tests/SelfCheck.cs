@@ -68,10 +68,13 @@ static class SelfCheck
         Check(m.Credits!.Cast is { Count: > 0 }, "cast should be populated");
 
         var crew = m.Credits.Crew!;
-        var mapped = crew.Count(c => c.Department?.IsKnown == true);
-        Check(mapped > 0, "some departments should map");
-        // Raw text survives even when the value is unmapped -- the TmdbEnum<T> contract.
-        Check(crew.All(c => c.Department?.Raw is not null), "raw wire text must be kept");
+        // Departments store the wire string, so comparison goes through the lookup constants.
+        var mapped = crew.Count(c => c.Department == CreditDepartment.VisualEffects
+                                  || c.Department == CreditDepartment.Directing
+                                  || c.Department == CreditDepartment.Writing);
+        Check(mapped > 0, "known departments should compare equal to the constants");
+        // The wire text is the stored value -- nothing is dropped, mapped or not.
+        Check(crew.All(c => c.Department is not null), "raw wire text must be kept");
         Console.WriteLine($"  appends:   {m.Credits.Cast!.Count} cast, {crew.Count} crew, {mapped} departments mapped");
 
         var images = Load<MovieDetails>("append_movie-details_images.json");
@@ -105,28 +108,31 @@ static class SelfCheck
 
     static void UnknownEnumDegrades()
     {
+        // Vocabularies store the wire string, so an unrecognised value is simply a string that
+        // matches no constant -- it is never coerced and never throws.
         var v = JsonSerializer.Deserialize<Video>(
             """{"site":"Dailymotion","type":"Interview"}""", Json)!;
-        Check(v.Site.Value == VideoSite.Unknown, "unknown site degrades to Unknown");
-        Check(v.Site.Raw == "Dailymotion", "raw site text is kept");
-        Check(v.Type.Value == VideoType.Unknown, "unknown type degrades to Unknown");
+        Check(v.Site == "Dailymotion", "unknown site is kept verbatim");
+        Check(v.Site != VideoSite.YouTube && v.Site != VideoSite.Vimeo, "unknown site matches no constant");
+        Check(v.Type == "Interview", "unknown type is kept verbatim");
 
         var known = JsonSerializer.Deserialize<Video>("""{"site":"YouTube","type":"Trailer"}""", Json)!;
-        Check(known.Site.Value == VideoSite.YouTube, "known site maps");
-        VideoType asEnum = known.Type;   // implicit conversion keeps switching ergonomic
-        Check(asEnum == VideoType.Trailer, "implicit conversion works");
+        Check(known.Site == VideoSite.YouTube, "known site compares equal to the constant");
+        Check(known.Type == VideoType.Trailer, "known type compares equal to the constant");
         Console.WriteLine($"  enums:     Dailymotion -> {v.Site}, YouTube -> {known.Site}");
     }
 
     static void NumericEnumRejectsOutOfRange()
     {
-        // A plain numeric enum silently casts 99 to (ReleaseType)99. It must not.
+        // Release type is numeric on the wire and stores as int -- an unlisted number is kept
+        // as-is rather than coerced, and matches none of the constants.
         var good = JsonSerializer.Deserialize<ReleaseDateEntry>("""{"type":3}""", Json)!;
-        Check(good.Type.Value == ReleaseType.Theatrical, "3 -> Theatrical");
+        Check(good.Type == ReleaseType.Theatrical, "3 -> Theatrical");
 
         var bad = JsonSerializer.Deserialize<ReleaseDateEntry>("""{"type":99}""", Json)!;
-        Check(bad.Type.Value == ReleaseType.Unknown, "99 must NOT silently cast");
-        Console.WriteLine($"  numeric:   3 -> {good.Type.Value}, 99 -> {bad.Type.Value} (raw {bad.Type.Raw})");
+        Check(bad.Type == 99, "99 is kept verbatim");
+        Check(bad.Type != ReleaseType.Theatrical, "99 matches no known release type");
+        Console.WriteLine($"  numeric:   3 -> {good.Type}, 99 -> {bad.Type}");
     }
 
     static void RatedIsPolymorphic()

@@ -108,9 +108,9 @@ public interface ICreditDetails<TPerson, TMedia>
 {
     string? Id { get; set; }
     string? Job { get; set; }
-    TmdbEnum<CreditDepartment>? Department { get; set; }
+    string? Department { get; set; }
     string? CreditType { get; set; }
-    TmdbEnum<MediaType> MediaType { get; set; }
+    string? MediaType { get; set; }
     TPerson? Person { get; set; }
     TMedia? Media { get; set; }
 }
@@ -196,7 +196,7 @@ public interface IReviewDetails
     string? Iso639_1 { get; set; }
     int MediaId { get; set; }
     string? MediaTitle { get; set; }
-    TmdbEnum<MediaType> MediaType { get; set; }
+    string? MediaType { get; set; }
     ReviewAuthor? AuthorDetails { get; set; }
     DateTimeOffset? CreatedAt { get; set; }
     DateTimeOffset? UpdatedAt { get; set; }

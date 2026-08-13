@@ -117,7 +117,7 @@ public interface ICrewMember
     string? Job { get; set; }
 
     /// <summary>Mapped value plus TMDB's raw text; converts implicitly to the enum.</summary>
-    TmdbEnum<CreditDepartment>? Department { get; set; }
+    string? Department { get; set; }
 
     string? CreditId { get; set; }
     string? KnownForDepartment { get; set; }
@@ -145,8 +145,8 @@ public interface IVideo
     string? Id { get; set; }
     string? Key { get; set; }
     string? Name { get; set; }
-    TmdbEnum<VideoSite> Site { get; set; }
-    TmdbEnum<VideoType> Type { get; set; }
+    string? Site { get; set; }
+    string? Type { get; set; }
     int Size { get; set; }
     bool Official { get; set; }
     DateTimeOffset? PublishedAt { get; set; }
@@ -212,7 +212,7 @@ public interface ICountryWatchProviders<TProvider> where TProvider : IWatchProvi
 public interface IChangeItem
 {
     string? Id { get; set; }
-    TmdbEnum<ChangeAction> Action { get; set; }
+    string? Action { get; set; }
     DateTimeOffset? Time { get; set; }
     string? Iso639_1 { get; set; }
     string? Iso3166_1 { get; set; }

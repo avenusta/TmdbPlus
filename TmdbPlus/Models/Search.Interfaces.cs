@@ -52,7 +52,7 @@ public interface IMultiSearchResult<TKnownFor>
     int Id { get; set; }
     bool Adult { get; set; }
     double Popularity { get; set; }
-    TmdbEnum<MediaType> MediaType { get; set; }
+    string? MediaType { get; set; }
     string? Overview { get; set; }
     string? PosterPath { get; set; }
     string? BackdropPath { get; set; }

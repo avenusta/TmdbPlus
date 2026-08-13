@@ -153,8 +153,7 @@ public class CombinedCastCredit : ICombinedCastCredit
     [JsonPropertyName("vote_count")] public int VoteCount { get; set; }
 
     [JsonPropertyName("media_type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<MediaType>))]
-    public TmdbEnum<MediaType> MediaType { get; set; }
+    public string? MediaType { get; set; }
 
     [JsonPropertyName("character")] public string? Character { get; set; }
     [JsonPropertyName("credit_id")] public string? CreditId { get; set; }
@@ -199,14 +198,12 @@ public class CombinedCrewCredit : ICombinedCrewCredit
     [JsonPropertyName("vote_count")] public int VoteCount { get; set; }
 
     [JsonPropertyName("media_type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<MediaType>))]
-    public TmdbEnum<MediaType> MediaType { get; set; }
+    public string? MediaType { get; set; }
 
     [JsonPropertyName("job")] public string? Job { get; set; }
 
     [JsonPropertyName("department")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<CreditDepartment>))]
-    public TmdbEnum<CreditDepartment>? Department { get; set; }
+    public string? Department { get; set; }
 
     [JsonPropertyName("credit_id")] public string? CreditId { get; set; }
     [JsonPropertyName("overview")] public string? Overview { get; set; }
@@ -276,8 +273,7 @@ public class TaggedImage : ITaggedImage<CombinedCastCredit>
     [JsonPropertyName("image_type")] public string? ImageType { get; set; }
 
     [JsonPropertyName("media_type")]
-    [JsonConverter(typeof(TmdbEnumValueConverter<MediaType>))]
-    public TmdbEnum<MediaType> MediaType { get; set; }
+    public string? MediaType { get; set; }
 
     /// <summary>The movie or series this still comes from, in its summary shape.</summary>
     [JsonPropertyName("media")] public CombinedCastCredit? Media { get; set; }

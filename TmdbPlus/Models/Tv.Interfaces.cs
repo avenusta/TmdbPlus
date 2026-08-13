@@ -53,7 +53,7 @@ public interface IAggregateCrewMember<TJobs>
     bool Adult { get; set; }
     double Popularity { get; set; }
     int TotalEpisodeCount { get; set; }
-    TmdbEnum<CreditDepartment>? Department { get; set; }
+    string? Department { get; set; }
     IList<TJobs>? Jobs { get; set; }
 }
 
@@ -135,7 +135,7 @@ public interface IEpisodeSummary
     int? Runtime { get; set; }
     double VoteAverage { get; set; }
     int VoteCount { get; set; }
-    TmdbEnum<EpisodeType>? EpisodeType { get; set; }
+    string? EpisodeType { get; set; }
     DateOnly? AirDate { get; set; }
 }
 

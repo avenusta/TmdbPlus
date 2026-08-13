@@ -21,7 +21,7 @@ public interface ICombinedCastCredit
     double Popularity { get; set; }
     double VoteAverage { get; set; }
     int VoteCount { get; set; }
-    TmdbEnum<MediaType> MediaType { get; set; }
+    string? MediaType { get; set; }
     string? Character { get; set; }
     string? CreditId { get; set; }
     int? Order { get; set; }
@@ -62,9 +62,9 @@ public interface ICombinedCrewCredit
     double Popularity { get; set; }
     double VoteAverage { get; set; }
     int VoteCount { get; set; }
-    TmdbEnum<MediaType> MediaType { get; set; }
+    string? MediaType { get; set; }
     string? Job { get; set; }
-    TmdbEnum<CreditDepartment>? Department { get; set; }
+    string? Department { get; set; }
     string? CreditId { get; set; }
     string? Overview { get; set; }
     string? PosterPath { get; set; }
@@ -178,7 +178,7 @@ public interface ITaggedImage<TMedia>
     int VoteCount { get; set; }
     string? Iso639_1 { get; set; }
     string? ImageType { get; set; }
-    TmdbEnum<MediaType> MediaType { get; set; }
+    string? MediaType { get; set; }
     TMedia? Media { get; set; }
 }
 

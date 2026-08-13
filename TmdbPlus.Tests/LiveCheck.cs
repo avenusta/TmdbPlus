@@ -87,8 +87,8 @@ static class LiveCheck
         check(person.CombinedCredits?.Cast is { Count: > 0 }, "combined credits should be populated");
 
         var credits = person.CombinedCredits!.Cast!;
-        var movies = credits.Count(c => c.MediaType.Value == MediaType.Movie);
-        var shows = credits.Count(c => c.MediaType.Value == MediaType.Tv);
+        var movies = credits.Count(c => c.MediaType == MediaTypes.Movie);
+        var shows = credits.Count(c => c.MediaType == MediaTypes.Tv);
         check(movies > 0 && shows > 0, "combined credits should span both media types");
         check(credits.All(c => c.DisplayName is not null), "every credit resolves a title or name");
         Console.WriteLine($"  people:    {person.Name} ({person.Birthday}), " +
@@ -97,10 +97,10 @@ static class LiveCheck
         // 5. Search, discover, find: query building under real filters.
         var multi = await client.Search.MultiAsync("matrix");
         check(multi.Results is { Count: > 0 }, "multi search should return results");
-        check(multi.Results!.Any(r => r.MediaType.Value == MediaType.Movie), "multi should include movies");
-        check(multi.Results.All(r => r.MediaType.IsKnown), "every multi result has a known media type");
+        check(multi.Results!.Any(r => r.MediaType == MediaTypes.Movie), "multi should include movies");
+        check(multi.Results.All(r => MediaTypes.Parse(r.MediaType) != MediaType.Unknown), "every multi result has a known media type");
         Console.WriteLine($"  search:    \"matrix\" -> {multi.TotalResults} results, " +
-                          $"types: {string.Join('/', multi.Results.Select(r => r.MediaType.Value).Distinct())}");
+                          $"types: {string.Join('/', multi.Results.Select(r => r.MediaType).Distinct())}");
 
         // Discover with several filters at once -- the dotted parameter names have to survive.
         var discovered = await client.Discover.MoviesAsync(new DiscoverMovieOptions
@@ -194,14 +194,14 @@ static class LiveCheck
                           $"{v4List.TotalResults} items, public={v4List.Public}");
 
         // The mixed-media claim: v4 lists can hold movies AND series, which v3 cannot.
-        var kinds = v4List.Results!.Select(r => r.MediaType.Value).Distinct().ToList();
-        check(kinds.All(k => k != MediaType.Unknown), "every v4 item has a known media type");
+        var kinds = v4List.Results!.Select(r => r.MediaType).Distinct().ToList();
+        check(kinds.All(k => MediaTypes.Parse(k) != MediaType.Unknown), "every v4 item has a known media type");
         Console.WriteLine($"  v4 mixed:  item types = {string.Join('/', kinds)}");
 
         // item_status answers 404 for an absent item rather than success:false, so the "is it on
         // the list" question is asked through the exception. Both directions are checked.
         var present = v4List.Results[0];
-        var onList = await client.V4Lists.GetItemStatusAsync(1, present.MediaType.Value, present.Id);
+        var onList = await client.V4Lists.GetItemStatusAsync(1, MediaTypes.Parse(present.MediaType), present.Id);
         check(onList.Success, "an item that IS on the list reports success");
 
         try
