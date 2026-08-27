@@ -33,6 +33,15 @@ Create a client with a read access token, call endpoints, get typed results back
   (`ICredits<TCast> where TCast : ICastMember`). `IList<T>` is not covariant and EF cannot map
   an explicit interface implementation, so a non-generic `IList<IElement>` would force every
   consumer into copying shadow properties.
+- A generic interface is split in two: `IFooBase` holds the flat scalars and takes no type
+  parameters, and `IFoo<…> : IFooBase` adds the generic members. Two reasons, and either alone
+  is enough. **Constraints must name the base, never a closed generic.** `where T : IFoo<OurType>`
+  pins the library's own type, so a consumer implementing `IFoo<TheirType>` fails CS0311 and
+  cannot satisfy the contract at all — the issue #18 leak. **And a consumer storing only flat
+  columns implements `IFooBase` alone**, instead of closing 16 parameters it does not use.
+  The split is only worth it where there are flat scalars to strip or a constraint to write:
+  a pure envelope needs a marker base (`ICreditsBase` is just `{ int Id; }`), and a generic
+  interface nobody constrains on and whose members are all generic needs no base.
 - Every entity-returning call has an **unconstrained generic twin** — `GetAsync<T>(…)` beside
   `GetAsync(…)` — so a consumer deserializes straight into its own EF entity instead of mapping
   off the library's type. Element-generic, not envelope-generic: `Task<PagedResult<T>>`, so the

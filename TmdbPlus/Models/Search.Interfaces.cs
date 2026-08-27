@@ -35,7 +35,7 @@ public interface ICompanySummary
 public interface IFindResults<TMovieResults, TTvResults, TPersonResults, TTvSeasonResults, TTvEpisodeResults>
     where TMovieResults : IMovieSummary
     where TTvResults : ITvSeriesSummary
-    where TPersonResults : IPersonSummary<CombinedCastCredit>
+    where TPersonResults : IPersonSummaryBase
     where TTvSeasonResults : ISeasonSummary
     where TTvEpisodeResults : IEpisodeSummary
 {
@@ -46,8 +46,7 @@ public interface IFindResults<TMovieResults, TTvResults, TPersonResults, TTvSeas
     IList<TTvEpisodeResults>? TvEpisodeResults { get; set; }
 }
 
-public interface IMultiSearchResult<TKnownFor>
-    where TKnownFor : ICombinedCastCredit
+public interface IMultiSearchResultBase
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -71,6 +70,11 @@ public interface IMultiSearchResult<TKnownFor>
     int? Gender { get; set; }
     string? KnownForDepartment { get; set; }
     string? ProfilePath { get; set; }
+}
+
+public interface IMultiSearchResult<TKnownFor> : IMultiSearchResultBase
+    where TKnownFor : ICombinedCastCredit
+{
     IList<TKnownFor>? KnownFor { get; set; }
 }
 

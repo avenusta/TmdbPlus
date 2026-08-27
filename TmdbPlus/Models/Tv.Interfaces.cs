@@ -12,8 +12,7 @@ namespace TmdbPlus.Models;
 //
 // Hand-maintained: keep in sync with the response classes in the matching .cs file.
 
-public interface IAggregateCastMember<TRoles>
-    where TRoles : IAggregateRole
+public interface IAggregateCastMemberBase
 {
     int Id { get; set; }
     string? Name { get; set; }
@@ -25,6 +24,11 @@ public interface IAggregateCastMember<TRoles>
     double Popularity { get; set; }
     int? Order { get; set; }
     int TotalEpisodeCount { get; set; }
+}
+
+public interface IAggregateCastMember<TRoles> : IAggregateCastMemberBase
+    where TRoles : IAggregateRole
+{
     IList<TRoles>? Roles { get; set; }
 }
 
@@ -34,15 +38,14 @@ public interface IAggregateCreditsBase
 }
 
 public interface IAggregateCredits<TCast, TCrew> : IAggregateCreditsBase
-    where TCast : IAggregateCastMember<AggregateRole>
-    where TCrew : IAggregateCrewMember<AggregateJob>
+    where TCast : IAggregateCastMemberBase
+    where TCrew : IAggregateCrewMemberBase
 {
     IList<TCast>? Cast { get; set; }
     IList<TCrew>? Crew { get; set; }
 }
 
-public interface IAggregateCrewMember<TJobs>
-    where TJobs : IAggregateJob
+public interface IAggregateCrewMemberBase
 {
     int Id { get; set; }
     string? Name { get; set; }
@@ -54,6 +57,11 @@ public interface IAggregateCrewMember<TJobs>
     double Popularity { get; set; }
     int TotalEpisodeCount { get; set; }
     string? Department { get; set; }
+}
+
+public interface IAggregateCrewMember<TJobs> : IAggregateCrewMemberBase
+    where TJobs : IAggregateJob
+{
     IList<TJobs>? Jobs { get; set; }
 }
 
@@ -86,19 +94,23 @@ public interface IEpisodeCredits<TGuestStars> : IEpisodeCreditsBase
     IList<TGuestStars>? GuestStars { get; set; }
 }
 
-public interface IEpisodeGroup<TEpisodes>
-    where TEpisodes : ITvEpisodeDetailsBase
+public interface IEpisodeGroupBase
 {
     string? Id { get; set; }
     string? Name { get; set; }
     int? Order { get; set; }
     bool Locked { get; set; }
+}
+
+public interface IEpisodeGroup<TEpisodes> : IEpisodeGroupBase
+    where TEpisodes : ITvEpisodeDetailsBase
+{
     IList<TEpisodes>? Episodes { get; set; }
 }
 
 public interface IEpisodeGroupDetails<TNetwork, TGroups>
     where TNetwork : INetwork
-    where TGroups : IEpisodeGroup<TvEpisodeDetails>
+    where TGroups : IEpisodeGroupBase
 {
     string? Id { get; set; }
     string? Name { get; set; }

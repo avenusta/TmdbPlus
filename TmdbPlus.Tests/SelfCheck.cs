@@ -203,6 +203,16 @@ static class SelfCheck
         // change to case handling cannot quietly take them away.
         Check(episodes.All(e => !string.IsNullOrEmpty(e.Name)), "name must bind on a bare implementer");
 
+        // The flat half of the split contract: scalars bind on the same bare implementer.
+        Check(season.Id != 0, "season id must bind on a bare implementer");
+        Check(season.SeasonNumber != 0, "season_number must bind on a bare implementer");
+        Check(!string.IsNullOrEmpty(season.Name), "season name must bind on a bare implementer");
+
+        // InternalId is the one member of the flat half a bare implementer CANNOT bind: `_id`
+        // is not derivable from the naming policy, and the attribute that rescues it lives on
+        // the library's own TvSeasonDetails. A consumer needing it declares its own attribute.
+        Check(season.InternalId is null, "_id cannot bind without an attribute (see the exceptions check)");
+
         var first = episodes[0];
         Console.WriteLine($"  contract:  bare implementer bound {episodes.Count} episodes, "
             + $"first = E{first.EpisodeNumber} '{first.Name}' {first.AirDate} ({first.EpisodeType})");
@@ -266,7 +276,22 @@ file sealed class BareEpisode : ITvEpisodeDetailsBase
     public int ShowId { get; set; }
 }
 
-file sealed class BareSeason
+/// <summary>
+/// Implements the season contract with the consumer's OWN episode type. This is what a marker
+/// base buys: had the constraint been <c>IEpisodeGroup&lt;TvEpisodeDetails&gt;</c>-style — closed
+/// over the library's concrete type — <c>BareEpisode</c> would not satisfy it and this would not
+/// compile (CS0311, issue #18).
+/// </summary>
+file sealed class BareSeason : ITvSeasonDetailsBase
 {
     public IList<BareEpisode>? Episodes { get; set; }
+
+    public int Id { get; set; }
+    public string? Name { get; set; }
+    public string? Overview { get; set; }
+    public string? PosterPath { get; set; }
+    public int SeasonNumber { get; set; }
+    public double VoteAverage { get; set; }
+    public DateOnly? AirDate { get; set; }
+    public string? InternalId { get; set; }
 }

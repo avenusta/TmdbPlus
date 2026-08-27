@@ -103,8 +103,8 @@ public interface ICountryInfo
 }
 
 public interface ICreditDetails<TPerson, TMedia>
-    where TPerson : IPersonSummary<CombinedCastCredit>
-    where TMedia : ICreditMedia<EpisodeSummary, SeasonSummary>
+    where TPerson : IPersonSummaryBase
+    where TMedia : ICreditMediaBase
 {
     string? Id { get; set; }
     string? Job { get; set; }
@@ -115,9 +115,7 @@ public interface ICreditDetails<TPerson, TMedia>
     TMedia? Media { get; set; }
 }
 
-public interface ICreditMedia<TEpisodes, TSeasons>
-    where TEpisodes : IEpisodeSummary
-    where TSeasons : ISeasonSummary
+public interface ICreditMediaBase
 {
     int Id { get; set; }
     string? Name { get; set; }
@@ -133,6 +131,12 @@ public interface ICreditMedia<TEpisodes, TSeasons>
     bool Adult { get; set; }
     DateOnly? FirstAirDate { get; set; }
     DateOnly? ReleaseDate { get; set; }
+}
+
+public interface ICreditMedia<TEpisodes, TSeasons> : ICreditMediaBase
+    where TEpisodes : IEpisodeSummary
+    where TSeasons : ISeasonSummary
+{
     IList<TEpisodes>? Episodes { get; set; }
     IList<TSeasons>? Seasons { get; set; }
 }

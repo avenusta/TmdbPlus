@@ -9,26 +9,11 @@ namespace TmdbPlus.Models;
 // Series
 // ---------------------------------------------------------------------------
 
-public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCompanies, TSeasons,
-    TLastEpisodeToAir, TNextEpisodeToAir, TExternalIds,
-    TCredits, TAggregateCredits, TImages, TVideos, TKeywords,
-    TContentRatings, TEpisodeGroups, TScreenedTheatrically>
-    where TGenres : IGenre
-    where TCreatedBy : ISeriesCreator
-    where TNetworks : INetwork
-    where TProductionCompanies : IProductionCompany
-    where TSeasons : ISeasonSummary
-    where TLastEpisodeToAir : IEpisodeSummary
-    where TNextEpisodeToAir : IEpisodeSummary
-    where TExternalIds : ITvExternalIds
-    where TCredits : ICreditsBase
-    where TAggregateCredits : IAggregateCreditsBase
-    where TImages : IImagesBase
-    where TVideos : IResultsOfBase
-    where TKeywords : ITvKeywordsBase
-    where TContentRatings : IResultsOfBase
-    where TEpisodeGroups : IResultsOfBase
-    where TScreenedTheatrically : IResultsOfBase
+/// <summary>
+/// The flat half of a series: the scalars TMDB always returns, no type parameters. A consumer
+/// whose entity stores only series columns implements this and skips the sixteen parameters.
+/// </summary>
+public interface ITvSeriesDetailsBase
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -55,8 +40,33 @@ public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCom
     IList<int>? EpisodeRunTime { get; set; }
     IList<string>? Languages { get; set; }
     IList<string>? OriginCountry { get; set; }
+}
 
-    // Nested collections and append blocks: null unless the call requested them.
+/// <summary>
+/// A series plus its nested collections and append blocks, each generic in its element or
+/// envelope type. Null unless the call requested them.
+/// </summary>
+public interface ITvSeriesDetails<TGenres, TCreatedBy, TNetworks, TProductionCompanies, TSeasons,
+    TLastEpisodeToAir, TNextEpisodeToAir, TExternalIds,
+    TCredits, TAggregateCredits, TImages, TVideos, TKeywords,
+    TContentRatings, TEpisodeGroups, TScreenedTheatrically> : ITvSeriesDetailsBase
+    where TGenres : IGenre
+    where TCreatedBy : ISeriesCreator
+    where TNetworks : INetwork
+    where TProductionCompanies : IProductionCompany
+    where TSeasons : ISeasonSummary
+    where TLastEpisodeToAir : IEpisodeSummary
+    where TNextEpisodeToAir : IEpisodeSummary
+    where TExternalIds : ITvExternalIds
+    where TCredits : ICreditsBase
+    where TAggregateCredits : IAggregateCreditsBase
+    where TImages : IImagesBase
+    where TVideos : IResultsOfBase
+    where TKeywords : ITvKeywordsBase
+    where TContentRatings : IResultsOfBase
+    where TEpisodeGroups : IResultsOfBase
+    where TScreenedTheatrically : IResultsOfBase
+{
     IList<TGenres>? Genres { get; set; }
     IList<TCreatedBy>? CreatedBy { get; set; }
     IList<TNetworks>? Networks { get; set; }
@@ -240,15 +250,10 @@ public class SeasonSummary : ISeasonSummary
     public DateOnly? AirDate { get; set; }
 }
 
-public interface ITvSeasonDetails<TEpisodes, TNetworks, TExternalIds,
-    TCredits, TAggregateCredits, TImages, TVideos>
-    where TEpisodes : ITvEpisodeDetailsBase
-    where TNetworks : INetwork
-    where TExternalIds : ITvExternalIds
-    where TCredits : ICreditsBase
-    where TAggregateCredits : IAggregateCreditsBase
-    where TImages : IImagesBase
-    where TVideos : IResultsOfBase
+/// <summary>
+/// The flat half of a season: the scalars TMDB always returns, no type parameters.
+/// </summary>
+public interface ITvSeasonDetailsBase
 {
     int Id { get; set; }
     string? Name { get; set; }
@@ -257,9 +262,23 @@ public interface ITvSeasonDetails<TEpisodes, TNetworks, TExternalIds,
     int SeasonNumber { get; set; }
     double VoteAverage { get; set; }
     DateOnly? AirDate { get; set; }
-
-    // Nested collections and append blocks: null unless the call requested them.
     string? InternalId { get; set; }
+}
+
+/// <summary>
+/// A season plus its nested collections and append blocks, each generic in its element or
+/// envelope type. Null unless the call requested them.
+/// </summary>
+public interface ITvSeasonDetails<TEpisodes, TNetworks, TExternalIds,
+    TCredits, TAggregateCredits, TImages, TVideos> : ITvSeasonDetailsBase
+    where TEpisodes : ITvEpisodeDetailsBase
+    where TNetworks : INetwork
+    where TExternalIds : ITvExternalIds
+    where TCredits : ICreditsBase
+    where TAggregateCredits : IAggregateCreditsBase
+    where TImages : IImagesBase
+    where TVideos : IResultsOfBase
+{
     IList<TEpisodes>? Episodes { get; set; }
     IList<TNetworks>? Networks { get; set; }
     TCredits? Credits { get; set; }

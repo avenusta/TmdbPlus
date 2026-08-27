@@ -5,17 +5,11 @@ namespace TmdbPlus.Models;
 
 // Nullability from audit/nullability_decisions.json, entry "/3/movie/{movie_id}".
 
-public interface IMovieDetails<TGenres, TProductionCompanies, TBelongsToCollection, TExternalIds,
-    TCredits, TImages, TVideos, TKeywords, TReleaseDates>
-    where TGenres : IGenre
-    where TProductionCompanies : IProductionCompany
-    where TBelongsToCollection : ICollectionRef
-    where TExternalIds : IMovieExternalIds
-    where TCredits : ICreditsBase
-    where TImages : IImagesBase
-    where TVideos : IResultsOfBase
-    where TKeywords : IMovieKeywordsBase
-    where TReleaseDates : IResultsOfBase
+/// <summary>
+/// The flat half of a movie: the scalars TMDB always returns, no type parameters. A consumer
+/// whose entity stores only movie columns implements this and skips the nine parameters.
+/// </summary>
+public interface IMovieDetailsBase
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -42,8 +36,24 @@ public interface IMovieDetails<TGenres, TProductionCompanies, TBelongsToCollecti
     DateOnly? ReleaseDate { get; set; }
     int? Runtime { get; set; }
     IList<string>? OriginCountry { get; set; }
+}
 
-    // Nested collections and append blocks: null unless the call requested them.
+/// <summary>
+/// A movie plus its nested collections and append blocks, each generic in its element or
+/// envelope type. Null unless the call requested them.
+/// </summary>
+public interface IMovieDetails<TGenres, TProductionCompanies, TBelongsToCollection, TExternalIds,
+    TCredits, TImages, TVideos, TKeywords, TReleaseDates> : IMovieDetailsBase
+    where TGenres : IGenre
+    where TProductionCompanies : IProductionCompany
+    where TBelongsToCollection : ICollectionRef
+    where TExternalIds : IMovieExternalIds
+    where TCredits : ICreditsBase
+    where TImages : IImagesBase
+    where TVideos : IResultsOfBase
+    where TKeywords : IMovieKeywordsBase
+    where TReleaseDates : IResultsOfBase
+{
     IList<TGenres>? Genres { get; set; }
     IList<TProductionCompanies>? ProductionCompanies { get; set; }
     IList<ProductionCountry>? ProductionCountries { get; set; }

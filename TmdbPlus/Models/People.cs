@@ -42,12 +42,10 @@ internal static class PersonAppendExtensions
     }
 }
 
-public interface IPersonDetails<TExternalIds, TCombinedCredits, TMovieCredits, TTvCredits, TImages>
-    where TExternalIds : IPersonExternalIds
-    where TCombinedCredits : ICombinedCreditsBase
-    where TMovieCredits : IPersonMovieCreditsBase
-    where TTvCredits : IPersonTvCreditsBase
-    where TImages : IPersonImagesBase
+/// <summary>
+/// The flat half of a person: the scalars TMDB always returns, no type parameters.
+/// </summary>
+public interface IPersonDetailsBase
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -63,8 +61,20 @@ public interface IPersonDetails<TExternalIds, TCombinedCredits, TMovieCredits, T
     DateOnly? Birthday { get; set; }
     DateOnly? Deathday { get; set; }
     IList<string>? AlsoKnownAs { get; set; }
+}
 
-    // Nested collections and append blocks: null unless the call requested them.
+/// <summary>
+/// A person plus its append blocks, each generic in its envelope type. Null unless the call
+/// requested them.
+/// </summary>
+public interface IPersonDetails<TExternalIds, TCombinedCredits, TMovieCredits, TTvCredits, TImages>
+    : IPersonDetailsBase
+    where TExternalIds : IPersonExternalIds
+    where TCombinedCredits : ICombinedCreditsBase
+    where TMovieCredits : IPersonMovieCreditsBase
+    where TTvCredits : IPersonTvCreditsBase
+    where TImages : IPersonImagesBase
+{
     TCombinedCredits? CombinedCredits { get; set; }
     TMovieCredits? MovieCredits { get; set; }
     TTvCredits? TvCredits { get; set; }

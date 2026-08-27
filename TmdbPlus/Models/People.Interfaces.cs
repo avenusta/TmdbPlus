@@ -119,8 +119,7 @@ public interface IPersonMovieCredits<TCast, TCrew> : IPersonMovieCreditsBase
     IList<TCrew>? Crew { get; set; }
 }
 
-public interface IPersonSummary<TKnownFor>
-    where TKnownFor : ICombinedCastCredit
+public interface IPersonSummaryBase
 {
     int Id { get; set; }
     bool Adult { get; set; }
@@ -130,6 +129,11 @@ public interface IPersonSummary<TKnownFor>
     string? OriginalName { get; set; }
     string? KnownForDepartment { get; set; }
     string? ProfilePath { get; set; }
+}
+
+public interface IPersonSummary<TKnownFor> : IPersonSummaryBase
+    where TKnownFor : ICombinedCastCredit
+{
     IList<TKnownFor>? KnownFor { get; set; }
 }
 

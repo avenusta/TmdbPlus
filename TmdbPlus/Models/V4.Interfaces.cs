@@ -44,7 +44,7 @@ public interface IV4ItemStatus
 }
 
 public interface IV4ListDetails<TResults>
-    where TResults : IMultiSearchResult<CombinedCastCredit>
+    where TResults : IMultiSearchResultBase
 {
     int Id { get; set; }
     string? Name { get; set; }
